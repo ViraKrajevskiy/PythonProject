@@ -1,0 +1,72 @@
+/* =========================================
+   index_page.css — ТОЛЬКО ДЛЯ ГЛАВНОЙ
+   ========================================= */
+
+/* Заголовок с тенью */
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Карточки досок */
+.board-card {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.board-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ссылка-плитка (Верхняя синяя/темная часть) */
+.board-link {
+    background-color: rgba(0, 0, 0, 0.2) !important; /* Затемняем фон под текстом */
+    min-height: 120px;
+    border-radius: 10px 10px 0 0;
+    transition: background 0.2s;
+}
+
+.board-link:hover {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Текст названия доски — ГЛАВНЫЙ ФИКС ВИДИМОСТИ */
+.board-link .card-title {
+    color: #ffffff !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); /* Жирная тень для читаемости */
+    text-align: center;
+    margin: 0;
+}
+
+/* Кнопка удаления */
+.btn-delete {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    opacity: 0.5;
+    transition: 0.2s;
+}
+
+.btn-delete:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Карточка создания */
+.create-board-card {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.3) !important;
+    border-radius: 10px;
+}
+
+.create-board-card input {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+}
