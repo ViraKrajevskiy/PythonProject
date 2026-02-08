@@ -1,0 +1,123 @@
+/* =========================================
+   BOARD PAGE SPECIFIC STYLES
+   ========================================= */
+
+/* Убираем скролл у body, чтобы работал только на канвасе */
+/* Обновленный блок в board_page.css */
+
+.board-wrapper {
+    /* Делаем отступ побольше, чтобы под панелью перевода и навбаром было место */
+    margin-top: 60px;
+    height: calc(100vh - 140px); /* Немного уменьшаем высоту канваса */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Фикс для body, чтобы не прыгало */
+body:has(.board-canvas) {
+    overflow: hidden !important;
+    position: relative;
+    top: 0 !important; /* Убираем попытки Google Translate двигать body через top */
+}
+
+/* Навигация внутри доски */
+.board-sub-nav {
+    min-height: 50px;
+}
+
+/* Хитрый заголовок доски для автоперевода */
+.board-title-display:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Канвас для колонок */
+.board-canvas {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 0 20px 20px 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-grow: 1;
+    white-space: nowrap;
+}
+
+/* Обертка колонки */
+.column-wrapper {
+    width: 280px;
+    min-width: 280px;
+    display: inline-block;
+    vertical-align: top;
+    white-space: normal;
+    max-height: 100%;
+}
+
+/* Карточка колонки */
+.column-card {
+    background-color: #ebedf0 !important;
+    border-radius: 10px !important;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* Инпут названия колонки */
+.column-title-input {
+    background: transparent !important;
+    border: none !important;
+    font-weight: 700 !important;
+    color: #172b4d !important;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+.column-title-input:focus {
+    background: white !important;
+    box-shadow: inset 0 0 0 2px #0079bf !important;
+    padding: 2px 5px !important;
+    border-radius: 3px;
+    cursor: text;
+}
+
+/* Контейнер задач */
+.task-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    scrollbar-width: thin;
+}
+
+/* Карточка задачи */
+.task-item {
+    background-color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    margin-bottom: 8px;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+    background-color: #f8f9fa !important;
+}
+
+/* Состояние выполненной задачи */
+.task-done {
+    opacity: 0.6;
+}
+.task-done .text-content {
+    text-decoration: line-through;
+}
+
+/* Пунктирная карточка добавления списка */
+.border-dashed {
+    border: 2px dashed rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Кастомный скроллбар */
+.board-canvas::-webkit-scrollbar { height: 10px; }
+.board-canvas::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.board-canvas::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }

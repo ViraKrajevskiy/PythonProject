@@ -1,0 +1,164 @@
+/* =========================================
+   1. ПАЛИТРА ТЕМ И АНИМАЦИЯ ФОНА
+   ========================================= */
+:root {
+    --bg-main: linear-gradient(-45deg, #0079bf, #5067d3, #026aa7, #2980b9);
+    --trello-blue: #0079bf;
+}
+
+body.theme-blue    { --bg-main: linear-gradient(-45deg, #0079bf, #5067d3, #026aa7, #2980b9); }
+body.theme-purple  { --bg-main: linear-gradient(-45deg, #89609e, #cd8de5, #6c5ce7, #a29bfe); }
+body.theme-green   { --bg-main: linear-gradient(-45deg, #519839, #90d379, #27ae60, #2ecc71); }
+body.theme-orange  { --bg-main: linear-gradient(-45deg, #d29034, #f3bc6d, #e67e22, #f39c12); }
+body.theme-red     { --bg-main: linear-gradient(-45deg, #b04632, #dd5f47, #c0392b, #e74c3c); }
+body.theme-pink    { --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8); }
+body.theme-dark    { --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c); }
+
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* =========================================
+   2. ОБЩИЕ НАСТРОЙКИ И ГЛОБАЛЬНЫЕ ФИКСЫ
+   ========================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: #172b4d;
+    min-height: 100vh;
+    background: var(--bg-main) no-repeat center center fixed !important;
+    background-size: cover !important;
+    transition: background 0.5s ease-in-out;
+    /* Важно для Google Translate */
+    position: relative;
+    top: 0 !important;
+}
+
+/* Анимированный фон */
+body.animated-bg {
+    background-size: 400% 400% !important;
+    animation: gradientAnimation 15s ease infinite;
+}
+
+/* Основной Навбар приложения */
+.navbar {
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    height: 60px;
+    transition: top 0.3s ease;
+}
+
+/* =========================================
+   3. ФИКСЫ ДЛЯ GOOGLE TRANSLATE (Чтобы не перекрывало)
+   ========================================= */
+
+/* Когда перевод включен, Google добавляет класс к HTML */
+html.translated-ltr body,
+html.translated-rtl body {
+    /* Сдвигаем всё содержимое body вниз */
+    margin-top: 40px !important;
+}
+
+html.translated-ltr .navbar,
+html.translated-rtl .navbar {
+    /* Спускаем фиксированный навбар под панель Google */
+    top: 40px !important;
+}
+
+/* Сдвигаем контент страницы (обертки), чтобы они не лезли под навбар */
+.main-container, .board-wrapper {
+    margin-top: 60px;
+    transition: margin-top 0.3s ease;
+}
+
+html.translated-ltr .main-container,
+html.translated-ltr .board-wrapper {
+    /* Увеличиваем отступ контента, когда активна панель перевода */
+    margin-top: 50px;
+}
+
+/* =========================================
+   4. ЭЛЕМЕНТЫ ИНТЕРФЕЙСА
+   ========================================= */
+
+/* Точки выбора тем */
+.theme-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    margin: 0 6px; cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    transition: 0.2s;
+}
+.theme-dot:hover { transform: scale(1.3); border-color: #fff; }
+
+.dot-default { background: #0079bf; }
+.dot-purple  { background: #89609e; }
+.dot-green   { background: #519839; }
+.dot-orange  { background: #d29034; }
+.dot-red     { background: #b04632; }
+.dot-pink    { background: #cd5a91; }
+.dot-dark    { background: #2c3e50; }
+
+/* Плитки досок на главной */
+.board-card {
+    border: none !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 10px !important;
+    transition: 0.2s ease;
+}
+.board-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+.board-link {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    min-height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none !important;
+    border-radius: 10px;
+}
+.board-link .card-title {
+    color: #fff !important; font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* =========================================
+   5. СКРЫТИЕ СЛУЖЕБНЫХ ЭЛЕМЕНТОВ GOOGLE
+   ========================================= */
+.goog-te-banner-frame,
+.goog-te-gadget,
+.skiptranslate,
+#google_translate_element {
+    display: none !important;
+}
+
+/* Убираем рамки, которые вешает Google на переведенный текст */
+font {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* =========================================
+   6. СКРОЛЛБАРЫ
+   ========================================= */
+::-webkit-scrollbar { width: 8px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
