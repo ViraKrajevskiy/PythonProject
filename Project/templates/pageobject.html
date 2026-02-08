@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ board.title }} | Online Trello{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/board_page.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="board-wrapper">
+    <nav class="board-sub-nav d-flex align-items-center mb-3 px-4">
+        <a href="{% url 'index' %}" class="btn btn-sm btn-white bg-white bg-opacity-25 text-white border-0 me-3 shadow-none">
+            ← К списку досок
+        </a>
+
+        <form action="{% url 'update_board' board.id %}" method="POST" class="d-flex align-items-center m-0">
+            {% csrf_token %}
+            <div class="position-relative">
+                <span class="board-title-display fw-bold fs-5 text-white"
+                      style="cursor: pointer; padding: 2px 8px; border-radius: 4px;"
+                      onclick="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.focus();">
+                    {{ board.title }}
+                </span>
+                <input type="text" name="title"
+                       class="form-control form-control-sm bg-white text-dark border-0 fw-bold fs-5 shadow-none d-none"
+                       value="{{ board.title }}"
+                       style="width: auto; min-width: 200px;"
+                       onblur="this.form.submit()"
+                       onkeypress="if(event.key === 'Enter') this.form.submit();">
+            </div>
+        </form>
+    </nav>
+
+    <main class="board-canvas">
+        {% for column in columns %}
+        <div class="column-wrapper">
+            <div class="card column-card shadow-sm border-0">
+
+                <div class="card-header border-0 bg-transparent pt-3 pb-2 px-3">
+                    <form action="{% url 'update_column' column.id %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <div class="position-relative">
+                            <span class="fw-bold text-dark opacity-75 d-block"
+                                  style="cursor: pointer; min-height: 24px;"
+                                  onclick="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.focus();">
+                                {{ column.title }}
+                            </span>
+                            <input type="text" name="title"
+                                   class="form-control form-control-sm bg-white border-0 fw-bold p-1 shadow-none text-dark d-none"
+                                   value="{{ column.title }}"
+                                   onblur="this.form.submit()"
+                                   onkeypress="if(event.key === 'Enter') this.form.submit();">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body task-container p-2">
+                    {% for task in column.tasks.all %}
+                    {% if not task.is_archived %}
+                    <div class="card shadow-sm border-0 mb-2 p-2 task-item {% if task.is_completed %}task-done{% endif %}"
+                         style="border-left: 4px solid {{ task.label_color }} !important;">
+
+                        <div class="d-flex align-items-center">
+                            <form action="{% url 'toggle_task' task.id %}" method="POST" class="me-2 m-0">
+                                {% csrf_token %}
+                                <input type="checkbox" class="form-check-input shadow-none"
+                                       {% if task.is_completed %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                            </form>
+
+                            <span class="task-text flex-grow-1 fw-medium" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">
+                                <span class="text-content">{{ task.text }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg">
+                                <form action="{% url 'update_task' task.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="modal-header bg-light border-0">
+                                        <h5 class="modal-title fw-bold">Параметры карточки</h5>
+                                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold text-muted">НАЗВАНИЕ</label>
+                                            <input type="text" name="text" class="form-control shadow-none" value="{{ task.text }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold text-muted">МЕТКА (ЦВЕТ)</label>
+                                            <select name="label_color" class="form-select shadow-none">
+                                                <option value="transparent">Нет метки</option>
+                                                <option value="#61bd4f" {% if task.label_color == "#61bd4f" %}selected{% endif %}>Зеленый</option>
+                                                <option value="#f2d600" {% if task.label_color == "#f2d600" %}selected{% endif %}>Желтый</option>
+                                                <option value="#eb5a46" {% if task.label_color == "#eb5a46" %}selected{% endif %}>Красный</option>
+                                                <option value="#0079bf" {% if task.label_color == "#0079bf" %}selected{% endif %}>Синий</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold text-muted">ОПИСАНИЕ</label>
+                                            <textarea name="description" class="form-control shadow-none" rows="4">{{ task.description|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold text-muted">СРОК ВЫПОЛНЕНИЯ</label>
+                                            <input type="datetime-local" name="due_date" class="form-control shadow-none" value="{{ task.due_date|date:'Y-m-d\TH:i' }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 bg-light d-flex justify-content-between">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" name="delete" class="btn btn-outline-danger btn-sm" formaction="{% url 'delete_task' task.id %}">Удалить</button>
+                                            <button type="submit" class="btn btn-outline-warning btn-sm" formaction="{% url 'archive_task' task.id %}">В архив</button>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Закрыть</button>
+                                            <button type="submit" class="btn btn-primary btn-sm px-4">Сохранить</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="card-footer border-0 bg-transparent pb-3">
+                    <form action="{% url 'add_task' %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="column_id" value="{{ column.id }}">
+                        <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-dark bg-opacity-10" placeholder="+ Добавить карточку" required>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="column-wrapper">
+            <div class="card bg-white bg-opacity-25 border-dashed shadow-none" style="width: 280px; border-radius: 10px;">
+               <div class="card-body p-2">
+                    <form action="{% url 'create_column' board.id %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <input type="text" name="title" class="form-control form-control-sm mb-2 shadow-none bg-white bg-opacity-75 border-0" placeholder="Введите имя списка..." required>
+                        <button type="submit" class="btn btn-light btn-sm w-100 fw-bold text-primary shadow-sm">+ Добавить список</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
