@@ -26,9 +26,8 @@ SECRET_KEY = 'django-insecure-&#j5cdw+4(rtz=k$l3edbele%h^7@9pgeo@cxl(7u7+1&fx!c5
 DEBUG = False
 
 # В settings.py
-ALLOWED_HOSTS = ['pythonproject-t880.onrender.com', '127.0.0.1', 'localhost']
-
-
+ALLOWED_HOSTS = ['*']
+#fs
 
 INSTALLED_APPS = [
     'django.contrib.admin',
