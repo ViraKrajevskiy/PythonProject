@@ -1,25 +1,37 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.db.models import UniqueConstraint
 
-class Board(models.Model):
-    title = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('admin', 'Директор'),
+        ('investor', 'Инвестор'),
+        ('developer', 'Разработчик'),
+        ('teacher', 'Учитель'),
+        ('other', 'Прочее'),
+    ]
 
-    def __str__(self):
-        return self.title
+    # Делаем имя и фамилию обязательными
+    first_name = models.CharField(max_length=150, blank=False)
+    last_name = models.CharField(max_length=150, blank=False)
 
-class Column(models.Model):
-    board = models.ForeignKey(Board, related_name='columns', on_delete=models.CASCADE)
-    title = models.CharField(max_length=100)
-    order = models.IntegerField(default=0)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='other')
 
-class Task(models.Model):
-    column = models.ForeignKey(Column, related_name='tasks', on_delete=models.CASCADE)
-    text = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)  # Описание
-    due_date = models.DateTimeField(blank=True, null=True)  # Дедлайн
-    label_color = models.CharField(max_length=20, default="transparent") # Цвет метки (hex или class)
-    is_completed = models.BooleanField(default=False)
-    is_archived = models.BooleanField(default=False)
+    class Meta:
+        constraints = [
+            # Это правило делает комбинацию Имя + Фамилия уникальной
+            UniqueConstraint(fields=['first_name', 'last_name'], name='unique_full_name')
+        ]
 
-    def __str__(self):
-        return self.text
+    # Твои настройки для групп и прав (оставляем как было)
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='project_user_groups',
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='project_user_permissions',
+        blank=True,
+    )
+

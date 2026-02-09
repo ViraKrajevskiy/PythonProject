@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Регистрация</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="auth-field-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if "password" in field.name %}
+                        <span class="toggle-password" onclick="togglePassword(this, '{{ field.id_for_label }}')">👁️</span>
+                    {% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="auth-btn">Создать аккаунт</button>
+        </form>
+        <div class="auth-footer">
+            <a href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Тот же скрипт для переключения
+function togglePassword(btn, inputId) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🔒";
+    } else {
+        input.type = "password";
+        btn.innerText = "👁️";
+    }
+}
+</script>
+{% endblock %}

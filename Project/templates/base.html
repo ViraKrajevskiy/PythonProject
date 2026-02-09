@@ -10,20 +10,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
-    <style>
-        /* Служебные стили для Google Translate */
-        .goog-te-banner-frame { display: none !important; }
-        body { top: 0 !important; }
-        .goog-te-gadget { display: none !important; }
-        #google_translate_element { display: none; }
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            const savedAnim = localStorage.getItem('bgAnimation');
 
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none; color: white;
-            padding: 5px 12px; border-radius: 20px;
-            font-size: 0.85rem; transition: 0.3s;
-        }
-    </style>
+            if (savedTheme && savedTheme !== 'default') {
+                document.documentElement.classList.add('theme-' + savedTheme);
+            }
+            if (savedAnim === 'true') {
+                document.documentElement.classList.add('animated-bg');
+            }
+        })();
+    </script>
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -31,11 +30,12 @@
 
     <nav class="navbar navbar-dark shadow-none mb-4">
         <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+
             <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'index' %}">
                 <span class="me-2">📋</span> Online TRELLO
             </a>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
                     <button class="lang-btn dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                         🌐 <span id="current-lang-label">RU</span>
@@ -49,68 +49,136 @@
                 </div>
 
                 <div class="theme-picker d-flex align-items-center bg-black bg-opacity-25 rounded-pill px-3 py-2 shadow-sm">
-                    <div class="theme-dot dot-default" onclick="setTheme('default')"></div>
-                    <div class="theme-dot dot-purple" onclick="setTheme('purple')"></div>
-                    <div class="theme-dot dot-green" onclick="setTheme('green')"></div>
-                    <div class="theme-dot dot-orange" onclick="setTheme('orange')"></div>
-                    <div class="theme-dot dot-red" onclick="setTheme('red')"></div>
-                    <div class="theme-dot dot-pink" onclick="setTheme('pink')"></div>
-                    <div class="theme-dot dot-dark" onclick="setTheme('dark')"></div>
+                    <div class="theme-dot" onclick="setTheme('default')" style="background: #0079bf;"></div>
+                    <div class="theme-dot" onclick="setTheme('purple')" style="background: #89609e;"></div>
+                    <div class="theme-dot" onclick="setTheme('green')" style="background: #519839;"></div>
+                    <div class="theme-dot" onclick="setTheme('orange')" style="background: #d29034;"></div>
+                    <div class="theme-dot" onclick="setTheme('red')" style="background: #b04632;"></div>
+                    <div class="theme-dot" onclick="setTheme('pink')" style="background: #cd5a91;"></div>
+                    <div class="theme-dot" onclick="setTheme('dark')" style="background: #2c3e50;"></div>
                     <div class="mx-2 bg-white bg-opacity-25" style="width: 1px; height: 16px;"></div>
-                    <span class="anim-toggle" onclick="toggleAnimation()">✨</span>
+                    <span class="anim-toggle" onclick="toggleAnimation()" style="cursor:pointer">✨</span>
                 </div>
+            </div>
+
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center shadow-none" type="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar-sm me-2">
+                                {{ user.username|slice:":1"|upper }}
+                            </div>
+                            <span class="d-none d-md-inline">{{ user.username }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg border-0">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">👤 Профиль</a></li>
+                            <li><hr class="dropdown-divider bg-secondary"></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger">🚪 Выход</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="btn-group gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm px-3 rounded-pill">Вход</a>
+                        <a href="{% url 'register' %}" class="btn btn-light btn-sm px-3 rounded-pill">Регистрация</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </nav>
 
-    <div id="google_translate_element"></div>
+    <div id="google_translate_element" style="display:none;"></div>
 
-    <main>
+    <main class="container-fluid px-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 mb-4 mx-auto" style="max-width: 500px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Скрипты тем и перевода (как в прошлом сообщении)
-        function changeLang(langCode) {
+        // --- 1. ЛОГИКА ТЕМ ---
+        function setTheme(themeName) {
+            const allThemes = ['theme-purple', 'theme-green', 'theme-orange', 'theme-red', 'theme-pink', 'theme-dark'];
+
+            // Удаляем старые темы отовсюду
+            document.body.classList.remove(...allThemes);
+            document.documentElement.classList.remove(...allThemes);
+
+            if (themeName !== 'default') {
+                const className = 'theme-' + themeName;
+                document.body.classList.add(className);
+                document.documentElement.classList.add(className);
+            }
+            localStorage.setItem('selectedTheme', themeName);
+        }
+
+        function toggleAnimation() {
+            const isAnimated = document.body.classList.toggle('animated-bg');
+            document.documentElement.classList.toggle('animated-bg');
+            localStorage.setItem('bgAnimation', isAnimated);
+        }
+
+        // --- 2. ЛОГИКА ПЕРЕВОДА ---
+        function applyTranslate() {
+            const savedLang = localStorage.getItem('userLang');
             const select = document.querySelector('.goog-te-combo');
-            if (select) { select.value = langCode; select.dispatchEvent(new Event('change')); }
+            if (select && savedLang && savedLang !== 'ru') {
+                if (select.value !== savedLang) {
+                    select.value = savedLang;
+                    select.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+
+        function changeLang(langCode) {
             localStorage.setItem('userLang', langCode);
-            document.getElementById('current-lang-label').innerText = langCode.split('-')[0].toUpperCase();
+            if (langCode === 'ru') {
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                location.reload();
+            } else {
+                applyTranslate();
+                document.getElementById('current-lang-label').innerText = langCode.split('-')[0].toUpperCase();
+                location.reload(); // Перезагружаем для применения
+            }
         }
 
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'ru',
                 includedLanguages: 'ru,en,zh-CN,uz',
-                autoDisplay: false,
-                multilanguagePage: true
+                autoDisplay: false
             }, 'google_translate_element');
         }
 
-        function setTheme(themeName) {
-            const allThemes = ['theme-purple', 'theme-green', 'theme-orange', 'theme-red', 'theme-pink', 'theme-dark'];
-            document.body.classList.remove(...allThemes);
-            if (themeName !== 'default') document.body.classList.add('theme-' + themeName);
-            localStorage.setItem('selectedTheme', themeName);
-        }
-
-        function toggleAnimation() {
-            const body = document.body;
-            body.classList.toggle('animated-bg');
-            localStorage.setItem('bgAnimation', body.classList.contains('animated-bg'));
-        }
-
+        // --- 3. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ---
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('selectedTheme');
-            if (savedTheme) setTheme(savedTheme);
-            if (localStorage.getItem('bgAnimation') === 'true') document.body.classList.add('animated-bg');
+            // Применяем анимацию если включена
+            if (localStorage.getItem('bgAnimation') === 'true') {
+                document.body.classList.add('animated-bg');
+                document.documentElement.classList.add('animated-bg');
+            }
 
-            setTimeout(() => {
-                const savedLang = localStorage.getItem('userLang');
-                if (savedLang && savedLang !== 'ru') changeLang(savedLang);
-            }, 1000);
+            // Загрузка отображения языка в кнопке
+            const savedLang = localStorage.getItem('userLang');
+            if (savedLang) {
+                document.getElementById('current-lang-label').innerText = savedLang.split('-')[0].toUpperCase();
+            }
+
+            // Запуск переводчика через секунду
+            setTimeout(applyTranslate, 1000);
         });
     </script>
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

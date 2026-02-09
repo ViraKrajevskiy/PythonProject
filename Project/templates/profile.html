@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="user-avatar-lg">
+            {{ user.first_name|first }}{{ user.last_name|first }}
+        </div>
+        <div>
+            <h2 class="text-white">{{ user.first_name }} {{ user.last_name }}</h2>
+            <span class="badge bg-light text-dark">Роль: {{ user.get_role_display }}</span>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success shadow-sm">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="profile-card p-4 bg-white rounded-3 shadow-sm">
+                <h4 class="mb-4">📝 Личные данные</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in user_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" name="update_profile" class="btn btn-primary w-100">Сохранить изменения</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="profile-card p-4 bg-white rounded-3 shadow-sm">
+                <h4 class="mb-4">🔒 Безопасность</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in pass_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" name="change_password" class="btn btn-outline-dark w-100">Обновить пароль</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

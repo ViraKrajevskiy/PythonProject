@@ -9,9 +9,8 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +25,7 @@ SECRET_KEY = 'django-insecure-&#j5cdw+4(rtz=k$l3edbele%h^7@9pgeo@cxl(7u7+1&fx!c5
 DEBUG = True
 
 # В settings.py
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 #fs
 
 INSTALLED_APPS = [
@@ -55,10 +54,11 @@ ROOT_URLCONF = 'Config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -111,13 +111,10 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Config/settings.py
+AUTH_USER_MODEL = 'Project.User'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-import os
-
-# Путь для поиска статики в папках приложений
 STATIC_URL = 'static/'
 
 # Папка, куда Django соберет всю статику для хостинга

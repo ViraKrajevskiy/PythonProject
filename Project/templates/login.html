@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Вход</h2>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {# Общие ошибки формы (например, если пользователя не существует) #}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" style="color: #fff; background-color: #eb5a46; padding: 10px; border-radius: 3px; margin-bottom: 15px; font-size: 14px;">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="auth-field-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                    {# Добавляем класс форме, если есть ошибки в поле #}
+                    {{ field }}
+
+                    {% if "password" in field.name %}
+                        <span class="toggle-password" onclick="togglePassword(this, '{{ field.id_for_label }}')">👁️</span>
+                    {% endif %}
+
+                    {# Ошибки конкретного поля (например, "обязательное поле") #}
+                    {% if field.errors %}
+                        <div class="error-text" style="color: #eb5a46; font-size: 12px; margin-top: 5px;">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="auth-btn">Войти</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Функция переключения видимости пароля
+ */
+function togglePassword(btn, inputId) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🔒"; // Иконка закрытого замка, когда пароль виден
+    } else {
+        input.type = "password";
+        btn.innerText = "👁️"; // Иконка глаза, когда пароль скрыт
+    }
+}
+
+// Добавляем класс во все инпуты для красоты, если их не прокинул Django
+document.querySelectorAll('.auth-field-group input').forEach(input => {
+    input.classList.add('form-control');
+});
+</script>
+{% endblock %}
