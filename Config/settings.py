@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&#j5cdw+4(rtz=k$l3edbele%h^7@9pgeo@cxl(7u7+1&fx!c5
 DEBUG = True
 
 # В settings.py
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['pythonproject-t660.onrender.com', 'localhost', '127.0.0.1']
 #fs
 
 INSTALLED_APPS = [
