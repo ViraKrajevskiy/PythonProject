@@ -26,14 +26,11 @@ urlpatterns = [
     path('column/update/<int:column_id>/', update_column, name='update_column'),
     path('board/<int:board_id>/invite/', invite_user, name='invite_user'),
     path('board/<int:board_id>/member/remove/<int:member_id>/', remove_member, name='remove_member'),
-    # Задачи (Tasks)
     path('task/add/', add_task, name='add_task'),
     path('task/update/<int:task_id>/', update_task, name='update_task'),
     path('task/delete/<int:task_id>/', delete_task, name='delete_task'),
     path('task/<int:pk>/toggle/', toggle_task, name='toggle_task'),
     path('task/<int:pk>/archive/', archive_task, name='archive_task'),
-
-    # Авторизация
     path('register/', register_view, name='register'),
     path('', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
