@@ -4,7 +4,8 @@
 function setCookie(name, value, days) {
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
+    // Добавляем SameSite=Lax для совместимости с современными браузерами на HTTP
+    document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
 }
 
 /**
@@ -23,17 +24,8 @@ function changeLang(langCode) {
         setCookie('googtrans', `/ru/${langCode}`, 1);
     }
 
-    // Перезагружаем страницу, чтобы Google Translate подхватил настройки
+    // Перезагружаем страницу, чтобы Google Translate применил куку
     location.reload();
-}
-
-// Коллбэк для инициализации Google Translate
-function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-        pageLanguage: 'ru',
-        includedLanguages: 'ru,en,zh-CN,uz',
-        autoDisplay: false
-    }, 'google_translate_element');
 }
 
 /**
@@ -42,7 +34,7 @@ function googleTranslateElementInit() {
 function setTheme(themeName) {
     const themes = ['theme-purple', 'theme-green', 'theme-orange', 'theme-red', 'theme-pink', 'theme-dark'];
 
-    // Чистим классы с html и body
+    // Чистим старые классы с html и body
     document.documentElement.classList.remove(...themes);
     document.body.classList.remove(...themes);
 
@@ -64,17 +56,24 @@ function toggleAnimation() {
  * 4. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ DOM
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Применяем тему
     const savedTheme = localStorage.getItem('selectedTheme');
     if (savedTheme) setTheme(savedTheme);
+
+    // Применяем анимацию
     if (localStorage.getItem('bgAnimation') === 'true') {
         document.body.classList.add('animated-bg');
         document.documentElement.classList.add('animated-bg');
     }
-   const savedLang = localStorage.getItem('userLang');
+
+    // Обновляем текст на кнопке языка
+    const savedLang = localStorage.getItem('userLang');
     if (savedLang) {
         const label = document.getElementById('current-lang-label');
         if (label) {
-            label.innerText = savedLang.split('-')[0].toUpperCase();
+            let langText = savedLang.toUpperCase();
+            if (langText === 'ZH-CN') langText = 'CN';
+            label.innerText = langText;
         }
     }
 });

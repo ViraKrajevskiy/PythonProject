@@ -61,18 +61,6 @@ body {
     position: static !important;
 }
 
-/* Убираем мусор от Google Translate */
-.goog-te-banner-frame, .goog-te-gadget, .skiptranslate,
-#google_translate_element, .goog-te-balloon-frame {
-    display: none !important;
-}
-
-font {
-    background: transparent !important;
-    box-shadow: none !important;
-    display: inline !important;
-}
-
 /* =========================================
    3. НАВИГАЦИЯ (NAVBAR)
    ========================================= */
@@ -104,6 +92,7 @@ font {
     display: flex;
     align-items: center;
     gap: 5px;
+    cursor: pointer;
 }
 
 .lang-btn:hover {
@@ -149,31 +138,49 @@ font {
 .theme-dot:hover { transform: scale(1.3); }
 
 /* =========================================
-   4. МОДАЛКИ (ИСПРАВЛЕНИЕ БАГА)
+   4. МОДАЛКИ
    ========================================= */
 .modal-content {
-    background-color: #ffffff !important; /* Принудительно белый фон */
+    background-color: #ffffff !important;
     color: #172b4d !important;
     border: none !important;
     border-radius: 15px !important;
     box-shadow: 0 15px 50px rgba(0,0,0,0.4) !important;
 }
 
-.modal-header {
-    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+/* =========================================
+   5. ЧИСТКА ОТ МУСОРА GOOGLE TRANSLATE
+   ========================================= */
+/* Скрываем верхнюю панель Google */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+    display: none !important;
 }
 
-.modal-footer {
-    border-top: 1px solid rgba(0,0,0,0.05) !important;
+/* Убираем отступ сверху у body, который делает Google */
+body {
+    top: 0 !important;
 }
 
-.modal-backdrop {
-    background-color: rgba(0,0,0,0.5) !important;
-    backdrop-filter: blur(2px);
+/* Скрываем подсказки при наведении на текст */
+.goog-te-balloon-frame {
+    display: none !important;
+}
+
+/* Убираем подсветку переведенного текста */
+font {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    display: inline !important;
+}
+
+/* Скрываем сам виджет, так как мы используем свои кнопки */
+#google_translate_element {
+    display: none !important;
 }
 
 /* =========================================
-   5. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
+   6. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
    ========================================= */
 .user-avatar-sm {
     width: 32px;
@@ -202,8 +209,4 @@ font {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
-}
-
-.translate-text {
-    display: inline-block;
 }
