@@ -1,72 +1,155 @@
 /* =========================================
-   index_page.css — ТОЛЬКО ДЛЯ ГЛАВНОЙ
+   ГЛАВНАЯ СТРАНИЦА: ДИНАМИЧЕСКИЕ КАРТОЧКИ
    ========================================= */
 
-/* Заголовок с тенью */
-.text-shadow {
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+/* Заголовки секций с адаптивным цветом под черту */
+.section-title {
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-left: 5px solid white;
+    padding-left: 15px;
+    margin: 40px 0 25px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Карточки досок */
+/* ОСНОВНАЯ КАРТОЧКА (Glassmorphism + Theme Support) */
 .board-card {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    /* Используем переменную --card-bg, которую мы прописали в base.css */
+    background: var(--card-bg, rgba(255, 255, 255, 0.1)) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 10px !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 20px !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .board-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    transform: translateY(-12px) scale(1.02);
     background: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Ссылка-плитка (Верхняя синяя/темная часть) */
+/* Контент внутри карточки */
 .board-link {
-    background-color: rgba(0, 0, 0, 0.2) !important; /* Затемняем фон под текстом */
-    min-height: 120px;
-    border-radius: 10px 10px 0 0;
-    transition: background 0.2s;
+    text-decoration: none !important;
+    padding: 40px 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.board-link:hover {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Текст названия доски — ГЛАВНЫЙ ФИКС ВИДИМОСТИ */
-.board-link .card-title {
+.board-card .card-title {
     color: #ffffff !important;
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); /* Жирная тень для читаемости */
+    font-size: 1.6rem;
+    font-weight: 800;
     text-align: center;
-    margin: 0;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Баджи статусов */
+.badge-status {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.badge-my {
+    background: white !important;
+    color: #172b4d !important;
+}
+
+.badge-guest {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Футер карточки (Дата и Корзина) */
+.card-footer {
+    background: rgba(0, 0, 0, 0.15) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 12px 20px !important;
+    border-radius: 0 0 20px 20px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-footer span {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 /* Кнопка удаления */
 .btn-delete {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    font-size: 1.1rem;
-    opacity: 0.5;
-    transition: 0.2s;
+    font-size: 1rem;
+    padding: 5px 8px;
+    border-radius: 8px;
+    transition: 0.3s;
+    cursor: pointer;
 }
 
 .btn-delete:hover {
-    opacity: 1;
-    transform: scale(1.2);
+    background: rgba(255, 0, 0, 0.4);
+    transform: scale(1.1);
 }
 
-/* Карточка создания */
-.create-board-card {
+/* ФОРМА СОЗДАНИЯ ДОСКИ */
+.create-board-wrapper {
     background: rgba(0, 0, 0, 0.1) !important;
     border: 2px dashed rgba(255, 255, 255, 0.3) !important;
-    border-radius: 10px;
+    border-radius: 20px;
+    transition: 0.3s;
 }
 
-.create-board-card input {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
+.create-board-wrapper:hover {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.create-board-wrapper label {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.create-board-wrapper .form-control {
+    background: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px !important;
+    color: #172b4d !important;
+    font-weight: 600;
+}
+
+.create-board-wrapper .btn-light {
+    background: white !important;
+    color: #0079bf !important;
+    font-weight: 800 !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    border: none !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.create-board-wrapper .btn-light:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }

@@ -2,20 +2,38 @@
    1. ПАЛИТРА ТЕМ (Глобальные переменные)
    ========================================= */
 :root {
-    /* Стандартная синяя тема */
     --bg-main: linear-gradient(-45deg, #0079bf, #5067d3, #026aa7, #2980b9);
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --accent-color: #ffffff;
     --transition-speed: 0.3s;
 }
 
-/* Привязываем темы к html и body для мгновенной загрузки */
-html.theme-purple, body.theme-purple  { --bg-main: linear-gradient(-45deg, #89609e, #cd8de5, #6c5ce7, #a29bfe); }
-html.theme-green, body.theme-green    { --bg-main: linear-gradient(-45deg, #519839, #90d379, #27ae60, #2ecc71); }
-html.theme-orange, body.theme-orange  { --bg-main: linear-gradient(-45deg, #d29034, #f3bc6d, #e67e22, #f39c12); }
-html.theme-red, body.theme-red        { --bg-main: linear-gradient(-45deg, #b04632, #dd5f47, #c0392b, #e74c3c); }
-html.theme-pink, body.theme-pink      { --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8); }
-html.theme-dark, body.theme-dark      { --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c); }
+html.theme-purple, body.theme-purple {
+    --bg-main: linear-gradient(-45deg, #89609e, #cd8de5, #6c5ce7, #a29bfe);
+    --card-bg: rgba(137, 96, 158, 0.25);
+}
+html.theme-green, body.theme-green {
+    --bg-main: linear-gradient(-45deg, #519839, #90d379, #27ae60, #2ecc71);
+    --card-bg: rgba(81, 152, 57, 0.25);
+}
+html.theme-orange, body.theme-orange {
+    --bg-main: linear-gradient(-45deg, #d29034, #f3bc6d, #e67e22, #f39c12);
+    --card-bg: rgba(210, 144, 52, 0.25);
+}
+html.theme-red, body.theme-red {
+    --bg-main: linear-gradient(-45deg, #b04632, #dd5f47, #c0392b, #e74c3c);
+    --card-bg: rgba(176, 70, 50, 0.25);
+}
+html.theme-pink, body.theme-pink {
+    --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8);
+    --card-bg: rgba(205, 90, 145, 0.25);
+}
+html.theme-dark, body.theme-dark {
+    --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c);
+    --card-bg: rgba(255, 255, 255, 0.05);
+}
 
-/* Анимация фона (✨) */
+/* Анимация фона */
 html.animated-bg body,
 body.animated-bg {
     background-size: 400% 400% !important;
@@ -35,31 +53,37 @@ body {
     font-family: 'Inter', sans-serif;
     color: #172b4d;
     min-height: 100vh;
-    /* transition: none здесь критически важен, чтобы не было лага при обновлении */
     background: var(--bg-main) no-repeat center center fixed !important;
     background-size: cover !important;
-    transition: none !important;
     margin: 0;
     overflow-x: hidden;
+    top: 0 !important;
+    position: static !important;
 }
 
-/* Фикс для Google Translate */
+/* Убираем мусор от Google Translate */
 .goog-te-banner-frame, .goog-te-gadget, .skiptranslate,
 #google_translate_element, .goog-te-balloon-frame {
     display: none !important;
 }
-body { top: 0 !important; }
-font { background: transparent !important; box-shadow: none !important; display: inline !important; }
+
+font {
+    background: transparent !important;
+    box-shadow: none !important;
+    display: inline !important;
+}
 
 /* =========================================
    3. НАВИГАЦИЯ (NAVBAR)
    ========================================= */
 .navbar {
     background: rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     height: 64px;
+    position: relative;
+    z-index: 1000;
 }
 
 .navbar-brand {
@@ -73,14 +97,41 @@ font { background: transparent !important; box-shadow: none !important; display:
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 0.8rem;
-    transition: 0.2s;
+    font-size: 0.85rem;
+    transition: var(--transition-speed);
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
-.lang-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
+.lang-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.dropdown-menu {
+    background: rgba(33, 37, 41, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    border-radius: 10px;
+}
+
+.dropdown-item {
+    color: white !important;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Выбор темы */
 .theme-picker {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 25px;
+    padding: 5px 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -88,13 +139,42 @@ font { background: transparent !important; box-shadow: none !important; display:
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    margin: 0 3px;
+    margin: 0 4px;
     cursor: pointer;
     border: 1.5px solid rgba(255, 255, 255, 0.5);
     transition: transform 0.2s;
+    display: inline-block;
 }
-.theme-dot:hover { transform: scale(1.2); }
 
+.theme-dot:hover { transform: scale(1.3); }
+
+/* =========================================
+   4. МОДАЛКИ (ИСПРАВЛЕНИЕ БАГА)
+   ========================================= */
+.modal-content {
+    background-color: #ffffff !important; /* Принудительно белый фон */
+    color: #172b4d !important;
+    border: none !important;
+    border-radius: 15px !important;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.4) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.modal-backdrop {
+    background-color: rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(2px);
+}
+
+/* =========================================
+   5. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
+   ========================================= */
 .user-avatar-sm {
     width: 32px;
     height: 32px;
@@ -103,39 +183,12 @@ font { background: transparent !important; box-shadow: none !important; display:
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: bold;
     color: white;
 }
 
-/* =========================================
-   4. СТИЛИ МОДАЛЬНЫХ ОКОН И УВЕДОМЛЕНИЙ
-   ========================================= */
-.modal-content {
-    border: none !important;
-    border-radius: 12px !important;
-    overflow: hidden;
-}
-
-.alert {
-    border-radius: 10px;
-    font-weight: 500;
-}
-
-/* =========================================
-   5. ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ
-   ========================================= */
-.text-shadow {
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.btn-white {
-    background: white;
-    color: #0079bf;
-    font-weight: 600;
-}
-
-/* Кастомный скроллбар */
+/* Скроллбар */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -151,7 +204,6 @@ font { background: transparent !important; box-shadow: none !important; display:
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Хелпер для перевода (чтобы текст был виден) */
 .translate-text {
     display: inline-block;
 }

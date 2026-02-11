@@ -1,123 +1,181 @@
 /* =========================================
-   BOARD PAGE SPECIFIC STYLES
+   1. ОБЩАЯ СТРУКТУРА ДОСКИ
    ========================================= */
 
-/* Убираем скролл у body, чтобы работал только на канвасе */
-/* Обновленный блок в board_page.css */
-
 .board-wrapper {
-    /* Делаем отступ побольше, чтобы под панелью перевода и навбаром было место */
-    margin-top: 60px;
-    height: calc(100vh - 140px); /* Немного уменьшаем высоту канваса */
+    /* Вычитаем высоту навбара (64px) + небольшие отступы */
+    height: calc(100vh - 64px);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-/* Фикс для body, чтобы не прыгало */
-body:has(.board-canvas) {
-    overflow: hidden !important;
-    position: relative;
-    top: 0 !important; /* Убираем попытки Google Translate двигать body через top */
-}
-
-/* Навигация внутри доски */
 .board-sub-nav {
-    min-height: 50px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    flex-shrink: 0; /* Чтобы навигация не сжималась */
 }
 
-/* Хитрый заголовок доски для автоперевода */
-.board-title-display:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-/* Канвас для колонок */
+/* Главная область с колонками */
 .board-canvas {
+    flex-grow: 1;
     display: flex;
     align-items: flex-start;
-    gap: 15px;
-    padding: 0 20px 20px 20px;
-    overflow-x: auto;
+    gap: 1rem;
+    padding: 10px 20px 20px;
+    overflow-x: auto; /* Горизонтальный скролл */
     overflow-y: hidden;
-    flex-grow: 1;
-    white-space: nowrap;
+    white-space: nowrap; /* Колонки в одну линию */
 }
 
-/* Обертка колонки */
+/* =========================================
+   2. КОЛОНКИ (СПИСКИ)
+   ========================================= */
+
 .column-wrapper {
     width: 280px;
     min-width: 280px;
-    display: inline-block;
-    vertical-align: top;
-    white-space: normal;
     max-height: 100%;
+    display: inline-block; /* Для горизонтального флоу */
+    vertical-align: top;
+    white-space: normal; /* Текст внутри колонок переносится обычно */
 }
 
-/* Карточка колонки */
 .column-card {
-    background-color: #ebedf0 !important;
-    border-radius: 10px !important;
-    max-height: 100%;
+    background: var(--card-bg) !important; /* Цвет из base.css */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 12px !important;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    max-height: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Инпут названия колонки */
-.column-title-input {
+/* Заголовок колонки */
+.column-card .card-header {
+    padding: 12px 16px 8px;
     background: transparent !important;
     border: none !important;
-    font-weight: 700 !important;
-    color: #172b4d !important;
-    padding: 0 !important;
-    cursor: pointer;
 }
 
-.column-title-input:focus {
-    background: white !important;
-    box-shadow: inset 0 0 0 2px #0079bf !important;
-    padding: 2px 5px !important;
-    border-radius: 3px;
-    cursor: text;
+.column-card .card-header span {
+    color: white !important;
+    font-size: 0.95rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* Контейнер задач */
+/* Контейнер для карточек (вертикальный скролл внутри списка) */
 .task-container {
     overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 10px 8px !important;
     flex-grow: 1;
-    scrollbar-width: thin;
 }
 
-/* Карточка задачи */
+/* =========================================
+   3. КАРТОЧКИ ЗАДАЧ
+   ========================================= */
+
 .task-item {
-    background-color: white !important;
+    background: #ffffff !important;
     border: none !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
     margin-bottom: 8px;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
+    transition: transform 0.1s ease, background 0.2s ease;
     cursor: pointer;
+    position: relative;
 }
 
 .task-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
-    background-color: #f8f9fa !important;
+    background: #fdfdfd !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Состояние выполненной задачи */
-.task-done {
-    opacity: 0.6;
+.task-text {
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: #172b4d !important; /* Темный текст для читаемости */
+    display: block;
 }
-.task-done .text-content {
+
+/* Стиль для выполненных задач */
+.task-done {
+    opacity: 0.7;
+    background: #f4f5f7 !important;
+}
+.task-done .task-text {
     text-decoration: line-through;
 }
 
-/* Пунктирная карточка добавления списка */
+/* =========================================
+   4. КНОПКИ И ФОРМЫ
+   ========================================= */
+
+/* Пунктирная колонка "+ Добавить список" */
 .border-dashed {
-    border: 2px dashed rgba(255, 255, 255, 0.4) !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Кастомный скроллбар */
-.board-canvas::-webkit-scrollbar { height: 10px; }
-.board-canvas::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-.board-canvas::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+.column-menu-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: white;
+    transition: background 0.2s;
+}
+
+.column-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Инпуты добавления задач */
+.column-card .card-footer input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.column-card .card-footer input:focus {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+}
+
+/* =========================================
+   5. КАСТОМНЫЕ СКРОЛЛБАРЫ
+   ========================================= */
+
+/* Горизонтальный скролл всей доски */
+.board-canvas::-webkit-scrollbar {
+    height: 12px;
+}
+.board-canvas::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+.board-canvas::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+.board-canvas::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Внутренний скролл колонки */
+.task-container::-webkit-scrollbar {
+    width: 6px;
+}
+.task-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}

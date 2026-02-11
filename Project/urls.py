@@ -19,7 +19,6 @@ urlpatterns = [
     path('board/delete/<int:board_id>/', delete_board, name='delete_board'),
     path('board/update/<int:board_id>/', update_board, name='update_board'),
 
-
     # Колонки
     path('column/delete/<int:column_id>/', delete_column, name='delete_column'),
     path('board/<int:board_id>/column/create/', create_column, name='create_column'),
