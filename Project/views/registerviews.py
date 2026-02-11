@@ -1,8 +1,39 @@
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import redirect, render
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect, render, get_object_or_404
 from Project.Forms.register import RegisterForm
 
+from django.urls import reverse
+
+from Project.Models_main.new import Comment
+
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.author != request.user:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            comment.content = content
+            comment.save()
+
+    return redirect(f"{reverse('board_detail', args=[comment.task.column.board.id])}?open_task={comment.task.id}")
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    board = comment.task.column.board
+
+    if comment.author == request.user or board.owner == request.user:
+        comment.delete()
+    else:
+        raise PermissionDenied
+
+    return redirect(f"{reverse('board_detail', args=[board.id])}?open_task={comment.task.id}")
 
 def register_view(request):
     if request.method == "POST":

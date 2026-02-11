@@ -149,38 +149,7 @@ body {
 }
 
 /* =========================================
-   5. ЧИСТКА ОТ МУСОРА GOOGLE TRANSLATE
-   ========================================= */
-/* Скрываем верхнюю панель Google */
-.goog-te-banner-frame.skiptranslate,
-.goog-te-banner-frame {
-    display: none !important;
-}
-
-/* Убираем отступ сверху у body, который делает Google */
-body {
-    top: 0 !important;
-}
-
-/* Скрываем подсказки при наведении на текст */
-.goog-te-balloon-frame {
-    display: none !important;
-}
-
-/* Убираем подсветку переведенного текста */
-font {
-    background-color: transparent !important;
-    box-shadow: none !important;
-    display: inline !important;
-}
-
-/* Скрываем сам виджет, так как мы используем свои кнопки */
-#google_translate_element {
-    display: none !important;
-}
-
-/* =========================================
-   6. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
+   5. АВАТАР ПОЛЬЗОВАТЕЛЯ (SM)
    ========================================= */
 .user-avatar-sm {
     width: 32px;
@@ -193,8 +162,45 @@ font {
     font-size: 0.85rem;
     font-weight: bold;
     color: white;
+    overflow: hidden; /* Чтобы картинка не выходила за границы круга */
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
 }
 
+.user-avatar-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Чтобы фото не сплющивалось */
+}
+
+/* =========================================
+   6. ЧИСТКА ОТ МУСОРА GOOGLE TRANSLATE
+   ========================================= */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}
+
+.goog-te-balloon-frame {
+    display: none !important;
+}
+
+font {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    display: inline !important;
+}
+
+#google_translate_element {
+    display: none !important;
+}
+
+/* =========================================
+   7. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
+   ========================================= */
 /* Скроллбар */
 ::-webkit-scrollbar {
     width: 8px;

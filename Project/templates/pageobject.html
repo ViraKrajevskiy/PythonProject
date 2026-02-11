@@ -5,48 +5,6 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/board_page.css' %}">
-    <style>
-        /* Стили для корректной работы перевода и элементов интерфейса */
-        .translate-text { display: inline-block; }
-        .translate-helper {
-            display: block;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            color: #44546f;
-            background: #f1f2f4;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border-left: 3px solid #007bff;
-        }
-        .task-date-badge {
-            font-size: 0.75rem;
-            color: #6c757d;
-            background: rgba(0,0,0,0.05);
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .assignee-circle {
-            width: 24px; height: 24px;
-            background-color: #007bff; color: white;
-            border-radius: 50%; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 11px; font-weight: bold; text-transform: uppercase;
-        }
-        .task-role-badge {
-            font-size: 10px; font-weight: 600;
-            padding: 2px 8px; border-radius: 4px;
-            background: #e9ecef; color: #495057;
-            border: 1px solid #dee2e6;
-            max-width: 100px;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-            display: inline-block;
-        }
-        .task-done { opacity: 0.6; }
-        .task-done .task-text { text-decoration: line-through; }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -57,17 +15,23 @@
                 <span class="translate-text">← К списку досок</span>
             </a>
 
-            {% if role != 'viewer' %}
+            {% if role == 'owner' or role == 'admin' %}
             <form action="{% url 'update_board' board.id %}" method="POST" class="d-flex align-items-center m-0">
                 {% csrf_token %}
-                <div class="position-relative">
-                    <span class="board-title-display fw-bold fs-5 text-white translate-text"
+                <div class="position-relative d-flex align-items-center">
+                    <span class="board-title-display fw-bold fs-5 text-white translate-text me-3"
                           style="cursor: pointer; padding: 2px 8px; border-radius: 4px;"
                           onclick="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.focus();">
                         {{ board.title }}
                     </span>
-                    <input type="text" name="title" class="form-control form-control-sm bg-white text-dark border-0 fw-bold fs-5 shadow-none d-none"
+                    <input type="text" name="title" class="form-control form-control-sm bg-white text-dark border-0 fw-bold fs-5 shadow-none d-none me-3"
                            value="{{ board.title }}" onblur="this.form.submit()">
+
+                    <div class="form-check form-switch text-white small m-0">
+                        <input class="form-check-input" type="checkbox" name="enable_comments" id="commentSwitch"
+                               {% if board.enable_comments %}checked{% endif %} onchange="this.form.submit()">
+                        <label class="form-check-label translate-text" for="commentSwitch">Комментарии</label>
+                    </div>
                 </div>
             </form>
             {% else %}
@@ -76,9 +40,9 @@
         </div>
 
         <div class="d-flex align-items-center gap-3 text-white">
-            <div class="small d-none d-md-block">
+            <div class="small d-none d-md-block text-end">
                 <span class="opacity-75 translate-text">Автор:</span>
-                <strong class="translate-text">{{ board.owner.username }}</strong>
+                <strong class="translate-text d-block">{{ board.owner.username }}</strong>
             </div>
             {% if board.owner == user %}
             <button class="btn btn-sm btn-warning fw-bold shadow-none rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#manageMembersModal">
@@ -92,30 +56,26 @@
         {% for column in columns %}
         <div class="column-wrapper">
             <div class="card column-card border-0 shadow-lg">
-                <div class="card-header border-0 bg-transparent pt-3 pb-2 px-3 d-flex justify-content-between align-items-start">
+                <div class="card-header d-flex justify-content-between align-items-start">
                     {% if role != 'viewer' %}
                     <form action="{% url 'update_column' column.id %}" method="POST" class="m-0 flex-grow-1">
                         {% csrf_token %}
                         <div class="position-relative">
-                            <span class="fw-bold text-white translate-text d-block"
-                                  style="cursor: pointer; min-height: 24px;"
+                            <span class="fw-bold translate-text d-block" style="cursor: pointer;"
                                   onclick="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.focus();">
                                 {{ column.title }}
                             </span>
-                            <input type="text" name="title"
-                                   class="form-control form-control-sm bg-white text-dark border-0 fw-bold p-1 shadow-none d-none"
-                                   value="{{ column.title }}"
-                                   onblur="this.form.submit()"
-                                   onkeypress="if(event.key === 'Enter') this.form.submit();">
+                            <input type="text" name="title" class="form-control form-control-sm bg-white border-0 fw-bold p-1 shadow-none d-none"
+                                   value="{{ column.title }}" onblur="this.form.submit()">
                         </div>
                     </form>
                     {% else %}
-                        <span class="fw-bold text-white translate-text">{{ column.title }}</span>
+                        <span class="fw-bold translate-text">{{ column.title }}</span>
                     {% endif %}
 
                     {% if role != 'viewer' %}
                     <div class="dropdown">
-                        <span class="column-menu-btn text-white opacity-75" data-bs-toggle="dropdown" style="cursor:pointer">⋮</span>
+                        <span class="column-menu-btn text-muted" data-bs-toggle="dropdown" style="cursor:pointer">⋮</span>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li>
                                 <form action="{% url 'delete_column' column.id %}" method="POST" class="m-0">
@@ -132,26 +92,33 @@
                     {% for task in column.tasks.all %}
                     {% if not task.is_archived %}
                     <div class="card task-item {% if task.is_completed %}task-done{% endif %}"
-                         style="border-left: 4px solid {{ task.label_color|default:'#ffffff' }} !important;"
-                         data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">
+                         style="border-left: 5px solid {{ task.label_color|default:'#0052cc' }} !important;"
+                         onclick="if(!event.target.classList.contains('task-checkbox')){ openTaskModal('{{ task.id }}'); }">
 
-                        <span class="task-text translate-text">{{ task.text }}</span>
+                        <div class="d-flex align-items-start gap-2">
+                            {% if role != 'viewer' %}
+                            <form action="{% url 'toggle_task' task.id %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <input type="checkbox" class="form-check-input task-checkbox shadow-none" {% if task.is_completed %}checked{% endif %} onchange="this.form.submit()">
+                            </form>
+                            {% endif %}
+                            <span class="task-text translate-text text-dark fw-medium">{{ task.text }}</span>
+                        </div>
 
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 gap-2">
-                            <div class="d-flex align-items-center gap-2">
-                                {% if task.task_role %}
-                                    <span class="task-role-badge translate-text">{{ task.task_role }}</span>
-                                {% endif %}
-                                {% if task.due_date %}
-                                    <div class="task-date-badge">
-                                        <span>📅</span> <span class="translate-text">{{ task.due_date|date:"d M" }}</span>
-                                    </div>
-                                {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if task.task_role %}<span class="task-role-badge">{{ task.task_role }}</span>{% endif %}
+                                {% if task.due_date %}<div class="task-date-badge">📅 {{ task.due_date|date:"d M" }}</div>{% endif %}
+                                {% if task.attachment %}<span class="text-muted small">📎</span>{% endif %}
                             </div>
 
                             {% if task.assigned_to %}
-                                <div class="assignee-circle" title="{{ task.assigned_to.username }}">
-                                    {{ task.assigned_to.username|slice:":1" }}
+                                <div class="assignee-circle" title="Исполнитель: {{ task.assigned_to.username }}">
+                                    {% if task.assigned_to.avatar %}
+                                        <img src="{{ task.assigned_to.avatar.url }}" alt="AV">
+                                    {% else %}
+                                        {{ task.assigned_to.username|slice:":1"|upper }}
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
@@ -161,11 +128,11 @@
                 </div>
 
                 {% if role != 'viewer' %}
-                <div class="card-footer border-0 bg-transparent pb-3">
+                <div class="card-footer border-0 bg-transparent">
                     <form action="{% url 'add_task' %}" method="POST" class="m-0">
                         {% csrf_token %}
                         <input type="hidden" name="column_id" value="{{ column.id }}">
-                        <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-white bg-opacity-10 text-white translate-text" placeholder="+ Добавить задачу" required>
+                        <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-dark bg-opacity-10 translate-text" placeholder="+ Добавить задачу" required>
                     </form>
                 </div>
                 {% endif %}
@@ -175,12 +142,12 @@
 
         {% if role != 'viewer' %}
         <div class="column-wrapper">
-            <div class="card border-dashed bg-white bg-opacity-10" style="border-radius: 12px; min-width: 280px;">
-               <div class="card-body p-2">
+            <div class="card bg-white bg-opacity-25 border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-2">
                     <form action="{% url 'create_column' board.id %}" method="POST" class="m-0">
                         {% csrf_token %}
-                        <input type="text" name="title" class="form-control form-control-sm mb-2 shadow-none border-0 translate-text" placeholder="Название списка..." required>
-                        <button type="submit" class="btn btn-light btn-sm w-100 fw-bold text-primary translate-text">+ Добавить список</button>
+                        <input type="text" name="title" class="form-control form-control-sm border-0 shadow-none mb-2" placeholder="+ Добавить список" required>
+                        <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">Добавить список</button>
                     </form>
                 </div>
             </div>
@@ -189,110 +156,49 @@
     </main>
 </div>
 
-{% for column in columns %}
-    {% for task in column.tasks.all %}
-    <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="background: white !important;">
-                <form action="{% url 'update_task' task.id %}" method="POST">
-                    {% csrf_token %}
-                    <div class="modal-header border-0 bg-light">
-                        <h5 class="modal-title fw-bold text-dark translate-text">Настройки карточки</h5>
-                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-dark">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted translate-text">НАЗВАНИЕ</label>
-                            <div class="translate-helper translate-text">{{ task.text }}</div>
-                            <textarea name="text" class="form-control shadow-none" rows="2" required {% if role == 'viewer' %}disabled{% endif %}>{{ task.text }}</textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold text-muted translate-text">ОТВЕТСТВЕННЫЙ</label>
-                                <select name="assigned_to" class="form-select shadow-none" {% if role == 'viewer' %}disabled{% endif %}>
-                                    <option value="">-- <span class="translate-text">Не назначен</span> --</option>
-                                    {% for member in board.members.all %}
-                                        <option value="{{ member.user.id }}" {% if task.assigned_to == member.user %}selected{% endif %}>{{ member.user.username }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold text-muted translate-text">ТЕГ / РОЛЬ</label>
-                                <div class="translate-helper translate-text">{% if task.task_role %}{{ task.task_role }}{% else %}Нет роли{% endif %}</div>
-                                <input type="text" name="task_role" class="form-control shadow-none" value="{{ task.task_role|default:'' }}" placeholder="Backend..." {% if role == 'viewer' %}disabled{% endif %}>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted translate-text">ОПИСАНИЕ</label>
-                            <div class="translate-helper translate-text">{% if task.description %}{{ task.description }}{% else %}Нет описания{% endif %}</div>
-                            <textarea name="description" class="form-control shadow-none" rows="3" {% if role == 'viewer' %}disabled{% endif %}>{{ task.description|default_if_none:"" }}</textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold text-muted translate-text">ЦВЕТ</label>
-                                <input type="color" name="label_color" class="form-control form-control-color w-100 border-0 shadow-none" value="{{ task.label_color|default:'#ffffff' }}" {% if role == 'viewer' %}disabled{% endif %}>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold text-muted translate-text">СРОК (DEADLINE)</label>
-                                <div class="translate-helper translate-text">{% if task.due_date %}{{ task.due_date|date:"d M Y H:i" }}{% else %}Срок не задан{% endif %}</div>
-                                <input type="datetime-local" name="due_date" class="form-control shadow-none" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" {% if role == 'viewer' %}disabled{% endif %}>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 bg-light d-flex justify-content-between">
-                        {% if role != 'viewer' %}
-                            <div class="d-flex gap-2">
-                                <button type="submit" name="delete" class="btn btn-outline-danger btn-sm translate-text" onclick="return confirm('Удалить?')">🗑 Удалить</button>
-                                <button type="submit" name="archive" class="btn btn-outline-warning btn-sm translate-text">В архив</button>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-light btn-sm translate-text" data-bs-dismiss="modal">Отмена</button>
-                                <button type="submit" class="btn btn-primary btn-sm px-4 translate-text">Сохранить</button>
-                            </div>
-                        {% else %}
-                            <button type="button" class="btn btn-secondary btn-sm translate-text" data-bs-dismiss="modal">Закрыть</button>
-                        {% endif %}
-                    </div>
-                </form>
+<div class="modal fade" id="universalTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg text-dark" id="taskModalContent">
+            <div class="p-5 text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Загрузка...</p>
             </div>
         </div>
     </div>
-    {% endfor %}
-{% endfor %}
+</div>
 
 {% if board.owner == user %}
 <div class="modal fade" id="manageMembersModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="background: white !important;">
+        <div class="modal-content border-0 shadow-lg text-dark">
             <div class="modal-header border-0 bg-light">
-                <h5 class="modal-title fw-bold text-dark translate-text">Управление доступом</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold">Участники доски</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-dark">
-                <form action="{% url 'invite_user' board.id %}" method="POST" class="mb-4">
+            <div class="modal-body">
+                <form action="{% url 'invite_user' board.id %}" method="POST" class="mb-3">
                     {% csrf_token %}
                     <div class="input-group">
-                        <input type="text" name="username" class="form-control shadow-none" placeholder="Username" required>
-                        <select name="role" class="form-select shadow-none" style="max-width: 120px;">
-                            <option value="viewer">Viewer</option>
-                            <option value="editor">Editor</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary translate-text">Ок</button>
+                        <input type="text" name="username" class="form-control" placeholder="Имя пользователя" required>
+                        <button type="submit" class="btn btn-primary fw-bold">Добавить</button>
                     </div>
                 </form>
-                <div class="list-group list-group-flush">
+                <div class="list-group">
                     {% for member in board.members.all %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div>
-                            <span class="translate-text">{{ member.user.username }}</span>
-                            <span class="badge bg-info ms-1 translate-text">{{ member.role }}</span>
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 bg-light mb-2 rounded shadow-sm">
+                        <div class="d-flex align-items-center gap-2">
+                             <div class="user-avatar-sm" style="width:28px; height:28px; font-size:11px;">
+                                {% if member.user.avatar %}
+                                    <img src="{{ member.user.avatar.url }}" class="rounded-circle w-100 h-100 object-fit-cover">
+                                {% else %}
+                                    {{ member.user.username|slice:":1"|upper }}
+                                {% endif %}
+                             </div>
+                             <span>{{ member.user.username }} <small class="text-muted">({{ member.role }})</small></span>
                         </div>
-                        <form action="{% url 'remove_member' board.id member.id %}" method="POST">
+                        <form action="{% url 'remove_member' board.id member.id %}" method="POST" class="m-0">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm text-danger shadow-none translate-text" onclick="return confirm('Удалить?')">Удалить</button>
+                            <button class="btn btn-sm text-danger shadow-none">Удалить</button>
                         </form>
                     </div>
                     {% endfor %}
@@ -305,12 +211,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('shown.bs.modal', function () {
-        const gtCombo = document.querySelector('.goog-te-combo');
-        if (gtCombo) {
-            gtCombo.dispatchEvent(new Event('change'));
-        }
-    });
-</script>
+    <script src="{% static 'js/board_page.js' %}"></script>
 {% endblock %}

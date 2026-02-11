@@ -65,7 +65,11 @@
                     <div class="dropdown">
                         <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center shadow-none p-0 ps-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="user-avatar-sm me-2">
-                                {{ user.username|slice:":1"|upper }}
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="AV" class="w-100 h-100 rounded-circle object-fit-cover">
+                                {% else %}
+                                    {{ user.username|slice:":1"|upper }}
+                                {% endif %}
                             </div>
                             <span class="d-none d-lg-inline">{{ user.username }}</span>
                         </button>
@@ -97,7 +101,7 @@
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 mb-4 mx-auto" style="max-width: 500px; z-index: 1100;">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-alert="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}

@@ -18,12 +18,18 @@ class RegisterForm(UserCreationForm):
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email")
+        # ВАЖНО: Добавил "avatar" в список полей
+        fields = ("username", "first_name", "last_name", "email", "avatar")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields:
-            self.fields[field].widget.attrs.update({'class': 'form-control'})
+            # Для всех полей, кроме аватара, оставляем обычный класс
+            # Полю файла лучше не форсировать form-control, если мы стилизовали его отдельно
+            if field != 'avatar':
+                self.fields[field].widget.attrs.update({'class': 'form-control'})
+            else:
+                self.fields[field].widget.attrs.update({'class': 'form-control-file'})
 
     def clean_username(self):
         username = self.cleaned_data.get('username')

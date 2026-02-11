@@ -1,9 +1,8 @@
 /* =========================================
-   1. ОБЩАЯ СТРУКТУРА ДОСКИ
+   1. ОБЩАЯ СТРУКТУРА И ФОН
    ========================================= */
 
 .board-wrapper {
-    /* Вычитаем высоту навбара (64px) + небольшие отступы */
     height: calc(100vh - 64px);
     display: flex;
     flex-direction: column;
@@ -12,21 +11,23 @@
 
 .board-sub-nav {
     padding: 12px 20px;
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(4px);
-    flex-shrink: 0; /* Чтобы навигация не сжималась */
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
 }
 
-/* Главная область с колонками */
 .board-canvas {
     flex-grow: 1;
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
-    padding: 10px 20px 20px;
-    overflow-x: auto; /* Горизонтальный скролл */
+    gap: 1.25rem;
+    padding: 20px;
+    overflow-x: auto;
     overflow-y: hidden;
-    white-space: nowrap; /* Колонки в одну линию */
+    white-space: nowrap;
 }
 
 /* =========================================
@@ -34,45 +35,43 @@
    ========================================= */
 
 .column-wrapper {
-    width: 280px;
-    min-width: 280px;
+    width: 300px;
+    min-width: 300px;
     max-height: 100%;
-    display: inline-block; /* Для горизонтального флоу */
+    display: inline-block;
     vertical-align: top;
-    white-space: normal; /* Текст внутри колонок переносится обычно */
+    white-space: normal;
 }
 
 .column-card {
-    background: var(--card-bg) !important; /* Цвет из base.css */
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: #f1f2f4 !important;
     border-radius: 12px !important;
     display: flex;
     flex-direction: column;
     max-height: 100%;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+    border: none !important;
 }
 
-/* Заголовок колонки */
 .column-card .card-header {
-    padding: 12px 16px 8px;
+    padding: 14px 16px 8px;
     background: transparent !important;
     border: none !important;
 }
 
-.column-card .card-header span {
-    color: white !important;
-    font-size: 0.95rem;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-/* Контейнер для карточек (вертикальный скролл внутри списка) */
 .task-container {
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 4px 10px 8px !important;
+    padding: 4px 12px 12px !important;
     flex-grow: 1;
+}
+
+/* Стеклянный эффект для кнопки "Добавить список" */
+.column-wrapper .card.bg-opacity-25 {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(5px);
+    border: 1px dashed rgba(255, 255, 255, 0.3) !important;
+    transition: background 0.3s ease;
 }
 
 /* =========================================
@@ -84,98 +83,161 @@
     border: none !important;
     border-radius: 8px !important;
     padding: 10px 12px !important;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
-    transition: transform 0.1s ease, background 0.2s ease;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
     cursor: pointer;
-    position: relative;
 }
 
 .task-item:hover {
     transform: translateY(-2px);
-    background: #fdfdfd !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
 }
 
-.task-text {
-    font-size: 0.88rem;
-    line-height: 1.4;
-    color: #172b4d !important; /* Темный текст для читаемости */
-    display: block;
-}
-
-/* Стиль для выполненных задач */
 .task-done {
-    opacity: 0.7;
-    background: #f4f5f7 !important;
+    opacity: 0.6;
 }
+
 .task-done .task-text {
     text-decoration: line-through;
 }
 
 /* =========================================
-   4. КНОПКИ И ФОРМЫ
+   4. АВАТАРКИ И ИСПОЛНИТЕЛИ
    ========================================= */
 
-/* Пунктирная колонка "+ Добавить список" */
-.border-dashed {
-    border: 2px dashed rgba(255, 255, 255, 0.25) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-}
-
-.column-menu-btn {
-    width: 28px;
-    height: 28px;
+.assignee-circle, .user-avatar-sm {
+    background-color: #0052cc;
+    color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    color: white;
-    transition: background 0.2s;
+    font-weight: bold;
+    text-transform: uppercase;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.column-menu-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+.assignee-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Инпуты добавления задач */
-.column-card .card-footer input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
 }
 
-.column-card .card-footer input:focus {
-    background: white !important;
-    color: black !important;
-    box-shadow: none !important;
+.assignee-circle img, .user-avatar-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* =========================================
-   5. КАСТОМНЫЕ СКРОЛЛБАРЫ
+   5. БЕЙДЖИ (ДЕЙДЛАЙН, РОЛЬ, ЦВЕТ)
    ========================================= */
 
-/* Горизонтальный скролл всей доски */
-.board-canvas::-webkit-scrollbar {
-    height: 12px;
-}
-.board-canvas::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-}
-.board-canvas::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-}
-.board-canvas::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+.task-date-badge {
+    font-size: 0.75rem;
+    color: #44546f;
+    background: #ebecf0;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-/* Внутренний скролл колонки */
-.task-container::-webkit-scrollbar {
-    width: 6px;
+.task-role-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #dfe1e6;
+    color: #172b4d;
+    text-transform: uppercase;
 }
-.task-container::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 10px;
+
+/* Стили для Input Color */
+.form-control-color {
+    height: 38px;
+    width: 100%;
+    padding: 5px;
+    cursor: pointer;
+    border: 2px solid #dfe1e6;
+}
+
+/* =========================================
+   6. МОДАЛЬНОЕ ОКНО И ХЕЛПЕРЫ
+   ========================================= */
+
+.modal-content {
+    border-radius: 12px !important;
+    border: none !important;
+}
+
+.translate-helper {
+    font-size: 0.85rem;
+    background: #f4f5f7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 4px solid #0052cc;
+    margin-bottom: 8px;
+    color: #172b4d;
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+    border: 2px solid #dfe1e6;
+    border-radius: 6px;
+}
+
+.modal-body .form-control:focus {
+    border-color: #0052cc;
+    box-shadow: none;
+}
+
+/* =========================================
+   7. КОММЕНТАРИИ И ВЛОЖЕНИЯ
+   ========================================= */
+
+.comments-list-scroll {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.comment-item {
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.attachment-preview {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+/* =========================================
+   8. СКРОЛЛБАРЫ (КАСТОМ)
+   ========================================= */
+
+.board-canvas::-webkit-scrollbar { height: 12px; }
+.board-canvas::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+.board-canvas::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+.board-canvas::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
+
+.task-container::-webkit-scrollbar { width: 6px; }
+.task-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+body {
+    overflow: hidden;
 }

@@ -4,37 +4,37 @@
 function setCookie(name, value, days) {
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    // Добавляем SameSite=Lax для совместимости с современными браузерами на HTTP
+    // SameSite=Lax необходим для работы в современных браузерах
     document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
 }
 
 /**
- * 2. ЛОГИКА ПЕРЕВОДА
+ * 2. ЛОГИКА ПЕРЕВОДА ЯЗЫКА
  */
 function changeLang(langCode) {
-    // Сохраняем выбор в localStorage для обновления текста на кнопке
+    // Сохраняем код языка для иконки на кнопке
     localStorage.setItem('userLang', langCode);
 
     if (langCode === 'ru') {
-        // Удаляем куки перевода для возврата к оригиналу
+        // Очистка куки для возврата к исходному языку
         document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
     } else {
-        // Устанавливаем куку формата /исходный/целевой
+        // Формат куки Google Translate: /исходный_язык/целевой_язык
         setCookie('googtrans', `/ru/${langCode}`, 1);
     }
 
-    // Перезагружаем страницу, чтобы Google Translate применил куку
+    // Перезагрузка для применения изменений
     location.reload();
 }
 
 /**
- * 3. УПРАВЛЕНИЕ ТЕМАМИ И АНИМАЦИЕЙ
+ * 3. УПРАВЛЕНИЕ ТЕМАМИ ОФОРМЛЕНИЯ
  */
 function setTheme(themeName) {
     const themes = ['theme-purple', 'theme-green', 'theme-orange', 'theme-red', 'theme-pink', 'theme-dark'];
 
-    // Чистим старые классы с html и body
+    // Удаляем все предыдущие классы тем с <html> и <body>
     document.documentElement.classList.remove(...themes);
     document.body.classList.remove(...themes);
 
@@ -43,37 +43,56 @@ function setTheme(themeName) {
         document.documentElement.classList.add(className);
         document.body.classList.add(className);
     }
+
+    // Запоминаем выбор пользователя
     localStorage.setItem('selectedTheme', themeName);
 }
 
+/**
+ * 4. УПРАВЛЕНИЕ АНИМАЦИЕЙ ФОНА
+ */
 function toggleAnimation() {
-    const isAnimated = document.body.classList.toggle('animated-bg');
+    const isActive = document.body.classList.toggle('animated-bg');
     document.documentElement.classList.toggle('animated-bg');
-    localStorage.setItem('bgAnimation', isAnimated);
+
+    // Сохраняем состояние (строкой, так как localStorage хранит только строки)
+    localStorage.setItem('bgAnimation', isActive ? 'true' : 'false');
 }
 
 /**
- * 4. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ DOM
+ * 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // Применяем тему
+    // 1. Применяем сохраненную тему
     const savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme) setTheme(savedTheme);
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
 
-    // Применяем анимацию
-    if (localStorage.getItem('bgAnimation') === 'true') {
+    // 2. Применяем анимацию фона
+    const savedAnim = localStorage.getItem('bgAnimation');
+    if (savedAnim === 'true') {
         document.body.classList.add('animated-bg');
         document.documentElement.classList.add('animated-bg');
     }
 
-    // Обновляем текст на кнопке языка
+    // 3. Обновляем текстовую метку текущего языка на кнопке
     const savedLang = localStorage.getItem('userLang');
-    if (savedLang) {
-        const label = document.getElementById('current-lang-label');
-        if (label) {
-            let langText = savedLang.toUpperCase();
-            if (langText === 'ZH-CN') langText = 'CN';
-            label.innerText = langText;
-        }
+    const label = document.getElementById('current-lang-label');
+
+    if (label && savedLang) {
+        let displayLang = savedLang.toUpperCase();
+        // Красивое сокращение для китайского
+        if (displayLang === 'ZH-CN') displayLang = 'CN';
+        label.innerText = displayLang;
     }
+
+    // 4. Автоматическое скрытие алертов (сообщений) через 5 секунд
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
 });

@@ -1,0 +1,174 @@
+<div class="task-modal-wrapper">
+    <form action="{% url 'update_task' task.id %}" method="POST" id="mainTaskForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="modal-header border-0 bg-white px-4 pt-4 pb-2">
+            <div class="w-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">ID: {{ task.id }}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <h5 class="modal-title fw-bold text-dark">{{ task.text|truncatechars:50 }}</h5>
+                <p class="text-muted small mb-0">
+                    <span class="translate-text">в списке</span> 
+                    <span class="text-decoration-underline">{{ task.column.title }}</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="modal-body px-4">
+            
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted translate-text">НАЗВАНИЕ КАРТОЧКИ</label>
+                <div class="translate-helper translate-text">{{ task.text }}</div>
+                <textarea name="text" class="form-control fw-bold" rows="2" required {% if role == 'viewer' %}disabled{% endif %}>{{ task.text }}</textarea>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted translate-text">ОТВЕТСТВЕННЫЙ</label>
+                    <select name="assigned_to" class="form-select" {% if role == 'viewer' %}disabled{% endif %}>
+                        <option value="" class="translate-text">-- Не назначен --</option>
+                        {% for u in all_users %}
+                            <option value="{{ u.id }}" {% if task.assigned_to == u %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted translate-text">СРОК (ДЕДЛАЙН)</label>
+                    <input type="date" name="due_date" class="form-control" 
+                           value="{{ task.due_date|date:'Y-m-d' }}" 
+                           {% if role == 'viewer' %}disabled{% endif %}>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted translate-text">МЕТКА (РОЛЬ)</label>
+                    <div class="translate-helper translate-text">{% if task.task_role %}{{ task.task_role }}{% else %}Нет роли{% endif %}</div>
+                    <input type="text" name="task_role" class="form-control" value="{{ task.task_role|default:'' }}" {% if role == 'viewer' %}disabled{% endif %}>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted translate-text">ЦВЕТ МЕТКИ</label>
+                    <input type="color" name="label_color" class="form-control form-control-color" 
+                           value="{{ task.label_color|default:'#0052cc' }}" 
+                           {% if role == 'viewer' %}disabled{% endif %}>
+                </div>
+            </div>
+
+            <div class="mt-4 mb-4">
+                <label class="form-label small fw-bold text-muted translate-text">ОПИСАНИЕ</label>
+                <div class="translate-helper translate-text">{% if task.description %}{{ task.description }}{% else %}Нет описания{% endif %}</div>
+                <textarea name="description" class="form-control" rows="3" {% if role == 'viewer' %}disabled{% endif %}>{{ task.description|default:"" }}</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted translate-text">ВЛОЖЕНИЯ</label>
+                {% if role != 'viewer' %}
+                <input type="file" name="attachment" class="form-control form-control-sm mb-2">
+                {% endif %}
+                
+                <div class="file-list">
+                    {% for file in task.files.all %}
+                    <div class="p-2 mb-1 bg-light rounded border d-flex justify-content-between align-items-center">
+                        <span class="small text-truncate" title="{{ file.original_name }}">📎 {{ file.original_name }}</span>
+                        <a href="{{ file.file.url }}" class="btn btn-sm btn-link py-0 translate-text" target="_blank">Открыть</a>
+                    </div>
+                    {% empty %}
+                    <small class="text-muted translate-text">Файлов пока нет</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="comments-container">
+                <label class="form-label small fw-bold text-muted mb-3">
+                    <span class="translate-text">КОММЕНТАРИИ</span> ({{ task.comments.count }})
+                </label>
+
+                <div class="comments-list-scroll mb-3">
+                    {% for comment in task.comments.all %}
+                    <div class="comment-item d-flex gap-3 mb-3">
+                        <div class="user-avatar-sm shadow-sm">
+                            {% if comment.author.avatar %}
+                                <img src="{{ comment.author.avatar.url }}" alt="AV">
+                            {% else %}
+                                {{ comment.author.username|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-primary small">{{ comment.author.username }}</span>
+                                <div class="d-flex gap-2">
+                                    <small class="text-muted">{{ comment.created_at|date:"H:i" }}</small>
+                                    {% if comment.author == user %}
+                                        <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" onclick="toggleEditComment('{{ comment.id }}')">✏️</button>
+                                    {% endif %}
+                                    {% if comment.author == user or board.owner == user %}
+                                        <button type="submit" form="deleteCommentForm{{ comment.id }}" class="btn btn-link p-0 text-danger border-0 shadow-none" onclick="return confirm('Удалить?')">🗑️</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div id="comment-text-{{ comment.id }}" class="small text-dark translate-text">
+                                {{ comment.content }}
+                            </div>
+
+                            {% if comment.author == user %}
+                            <div id="edit-box-{{ comment.id }}" class="mt-2 d-none">
+                                <textarea id="edit-textarea-{{ comment.id }}" class="form-control form-control-sm mb-1">{{ comment.content }}</textarea>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-success btn-sm px-2 py-0" onclick="submitEditComment('{{ comment.id }}')">ОК</button>
+                                    <button type="button" class="btn btn-light btn-sm px-2 py-0 border" onclick="toggleEditComment('{{ comment.id }}')">Отмена</button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if role != 'viewer' and board.enable_comments %}
+                <div class="new-comment-box p-2 bg-light rounded border">
+                    <div class="input-group input-group-sm">
+                        <input type="text" form="addCommentForm" name="content" class="form-control border-0 bg-transparent shadow-none" placeholder="Написать комментарий..." required>
+                        <button type="submit" form="addCommentForm" class="btn btn-primary px-3 fw-bold">OK</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="modal-footer bg-light border-0 px-4 py-3">
+            {% if role != 'viewer' %}
+            <div class="d-flex w-100 justify-content-between">
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="delete" class="btn btn-outline-danger btn-sm px-3" onclick="return confirm('Вы уверены?')">
+                        <span class="translate-text">Удалить</span>
+                    </button>
+                    <button type="submit" name="action" value="archive" class="btn btn-outline-warning btn-sm px-3">
+                        <span class="translate-text">Архив</span>
+                    </button>
+                </div>
+                <button type="submit" name="action" value="save" class="btn btn-primary btn-sm px-4 shadow-sm fw-bold">
+                    <span class="translate-text">Сохранить всё</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <form id="addCommentForm" action="{% url 'add_comment' task.id %}" method="POST" style="display: none;">{% csrf_token %}</form>
+    {% for comment in task.comments.all %}
+        {% if comment.author == user %}
+        <form id="editCommentForm{{ comment.id }}" action="{% url 'edit_comment' comment.id %}" method="POST" style="display: none;">
+            {% csrf_token %}<input type="hidden" name="content" id="hidden-edit-input-{{ comment.id }}">
+        </form>
+        {% endif %}
+        {% if comment.author == user or board.owner == user %}
+        <form id="deleteCommentForm{{ comment.id }}" action="{% url 'delete_comment' comment.id %}" method="POST" style="display: none;">{% csrf_token %}</form>
+        {% endif %}
+    {% endfor %}
+</div>
