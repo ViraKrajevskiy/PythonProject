@@ -6,10 +6,10 @@ from Project.views.views import index, board_detail, create_board, delete_board,
     delete_task, toggle_task, archive_task
 
 urlpatterns = [
-    # Главная и профиль
+
     path('main/', index, name='index'),
     path('profile/', profile_view, name='profile'),
-    # Доски (Board)
+
     path('board/<int:board_id>/', board_detail, name='board_detail'),
     path('board/create/', create_board, name='create_board'),
     path('board/delete/<int:board_id>/', delete_board, name='delete_board'),
@@ -18,7 +18,8 @@ urlpatterns = [
     path('comment/<int:comment_id>/edit/', edit_comment, name='edit_comment'),
     path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
     path('task/<int:task_id>/get_details/', get_task_details, name='get_task_details'),
-    # Колонки
+
+    path('board/<int:board_id>/member/<int:member_id>/update_role/', update_member_role, name='update_member_role'),
     path('column/delete/<int:column_id>/', delete_column, name='delete_column'),
     path('board/<int:board_id>/column/create/', create_column, name='create_column'),
     path('column/update/<int:column_id>/', update_column, name='update_column'),

@@ -1,103 +1,134 @@
 /**
- * 1. РАБОТА С КУКИ (Для Google Translate)
+ * 1. РАБОТА С КУКИ (Исправлено для Google Translate)
  */
 function setCookie(name, value, days) {
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    // SameSite=Lax необходим для работы в современных браузерах
+    // Устанавливаем SameSite=Lax и путь, чтобы кука была видна везде
     document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
 }
 
 /**
- * 2. ЛОГИКА ПЕРЕВОДА ЯЗЫКА
- *
- * Используем официальный хак с кукой `googtrans=/auto/{lang}`,
- * чтобы Google сам определял исходный язык (в т.ч. китайский)
- * и переводил на выбранный.
+ * 2. ЛОГИКА ПЕРЕВОДА (Исправлено: теперь русский тоже принудительный)
  */
 function changeLang(langCode) {
-    // Сохраняем код языка для иконки на кнопке
     localStorage.setItem('userLang', langCode);
 
-    if (langCode === 'ru') {
-        // Возврат к оригиналу (любой язык -> исходный)
-        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
-    } else {
-        // Авто‑определение исходного языка, целевой — выбранный
-        // Работает для китайского -> русский, английский -> русский и т.д.
-        setCookie('googtrans', `/auto/${langCode}`, 1);
-    }
+    // ВАЖНО: Мы не удаляем куку для 'ru', а принудительно ставим /auto/ru.
+    // Это заставляет Google переводить смешанный текст (китайский/английский) на русский.
+    setCookie('googtrans', `/auto/${langCode}`, 1);
 
-    // Перезагрузка для применения изменений
+    // Дублируем для текущего домена (иногда необходимо на хостингах)
+    const domain = location.hostname;
+    document.cookie = `googtrans=/auto/${langCode};path=/;domain=${domain};SameSite=Lax`;
+
+    // Перезагружаем страницу для применения перевода
     location.reload();
 }
 
 /**
- * 3. УПРАВЛЕНИЕ ТЕМАМИ ОФОРМЛЕНИЯ
+ * 3. ОТКРЫТИЕ МОДАЛКИ ЗАДАЧИ (AJAX)
+ */
+function openTaskModal(taskId) {
+    const contentDiv = document.getElementById('taskModalContent');
+    const modalEl = document.getElementById('universalTaskModal');
+
+    if (!contentDiv || !modalEl) return;
+
+    // Спиннер загрузки
+    contentDiv.innerHTML = `
+        <div class="p-5 text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Загрузка задачи...</p>
+        </div>
+    `;
+
+    let modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modalInstance.show();
+
+    // Запрос к серверу
+    fetch(`/task/${taskId}/get_details/`)
+        .then(response => {
+            if (!response.ok) throw new Error('Ошибка при загрузке данных');
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+        })
+        .catch(err => {
+            contentDiv.innerHTML = `
+                <div class="p-5 text-center">
+                    <h5 class="text-danger">Ошибка</h5>
+                    <p>${err.message}</p>
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            `;
+        });
+}
+
+/**
+ * 4. РЕДАКТИРОВАНИЕ КОММЕНТАРИЕВ
+ */
+function toggleEditComment(commentId) {
+    const textDiv = document.getElementById(`comment-text-${commentId}`);
+    const editBox = document.getElementById(`edit-box-${commentId}`);
+    if (textDiv && editBox) {
+        textDiv.classList.toggle('d-none');
+        editBox.classList.toggle('d-none');
+    }
+}
+
+function submitEditComment(commentId) {
+    const textarea = document.getElementById(`edit-textarea-${commentId}`);
+    const hiddenInput = document.getElementById(`hidden-edit-input-${commentId}`);
+    const form = document.getElementById(`editCommentForm${commentId}`);
+
+    if (textarea && hiddenInput && form) {
+        if (textarea.value.trim() === "") return;
+        hiddenInput.value = textarea.value;
+        form.submit();
+    }
+}
+
+/**
+ * 5. ТЕМЫ И АНИМАЦИИ
  */
 function setTheme(themeName) {
     const themes = ['theme-purple', 'theme-green', 'theme-orange', 'theme-red', 'theme-pink', 'theme-dark'];
-
-    // Удаляем все предыдущие классы тем с <html> и <body>
     document.documentElement.classList.remove(...themes);
     document.body.classList.remove(...themes);
 
     if (themeName !== 'default') {
-        const className = 'theme-' + themeName;
-        document.documentElement.classList.add(className);
-        document.body.classList.add(className);
+        document.documentElement.classList.add('theme-' + themeName);
+        document.body.classList.add('theme-' + themeName);
     }
-
-    // Запоминаем выбор пользователя
     localStorage.setItem('selectedTheme', themeName);
 }
 
-/**
- * 4. УПРАВЛЕНИЕ АНИМАЦИЕЙ ФОНА
- */
 function toggleAnimation() {
     const isActive = document.body.classList.toggle('animated-bg');
     document.documentElement.classList.toggle('animated-bg');
-
-    // Сохраняем состояние (строкой, так как localStorage хранит только строки)
     localStorage.setItem('bgAnimation', isActive ? 'true' : 'false');
 }
 
 /**
- * 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+ * 6. ИНИЦИАЛИЗАЦИЯ
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Применяем сохраненную тему
+    // Тема
     const savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme) {
-        setTheme(savedTheme);
-    }
+    if (savedTheme) setTheme(savedTheme);
 
-    // 2. Применяем анимацию фона
-    const savedAnim = localStorage.getItem('bgAnimation');
-    if (savedAnim === 'true') {
+    // Анимация
+    if (localStorage.getItem('bgAnimation') === 'true') {
         document.body.classList.add('animated-bg');
         document.documentElement.classList.add('animated-bg');
     }
 
-    // 3. Обновляем текстовую метку текущего языка на кнопке
+    // Текст на кнопке языка
     const savedLang = localStorage.getItem('userLang');
     const label = document.getElementById('current-lang-label');
-
     if (label && savedLang) {
-        let displayLang = savedLang.toUpperCase();
-        // Красивое сокращение для китайского
-        if (displayLang === 'ZH-CN') displayLang = 'CN';
-        label.innerText = displayLang;
+        label.innerText = savedLang === 'zh-CN' ? 'CN' : savedLang.toUpperCase();
     }
-
-    // 4. Автоматическое скрытие алертов (сообщений) через 5 секунд
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
 });

@@ -4,6 +4,7 @@
 :root {
     --bg-main: linear-gradient(-45deg, #0079bf, #5067d3, #026aa7, #2980b9);
     --card-bg: rgba(255, 255, 255, 0.1);
+    --column-bg: #ebecf0; /* Светло-серый стандарт Trello */
     --accent-color: #ffffff;
     --transition-speed: 0.3s;
 }
@@ -52,17 +53,77 @@ body.animated-bg {
 body {
     font-family: 'Inter', sans-serif;
     color: #172b4d;
-    min-height: 100vh;
+    height: 100vh;
     background: var(--bg-main) no-repeat center center fixed !important;
     background-size: cover !important;
     margin: 0;
-    overflow-x: hidden;
+    overflow: hidden; /* Запрещаем общий скролл страницы */
     top: 0 !important;
     position: static !important;
 }
 
+/* Контейнер доски */
+.board-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Холст для колонок (Горизонтальный скролл) */
+.board-canvas {
+    display: flex;
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+    gap: 12px;
+    align-items: flex-start;
+}
+
 /* =========================================
-   3. НАВИГАЦИЯ (NAVBAR)
+   3. КОЛОНКИ И КАРТОЧКИ (TRELLO STYLE)
+   ========================================= */
+.column-wrapper {
+    width: 272px;
+    flex-shrink: 0;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-card {
+    background-color: #f1f2f4;
+    border-radius: 12px;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.task-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 8px;
+}
+
+/* Карточка задачи */
+.task-item {
+    background: white;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none !important;
+}
+
+.task-item:hover {
+    background: #f9fafb;
+}
+
+/* =========================================
+   4. НАВИГАЦИЯ И ИНТЕРФЕЙС
    ========================================= */
 .navbar {
     background: rgba(0, 0, 0, 0.2) !important;
@@ -74,83 +135,12 @@ body {
     z-index: 1000;
 }
 
-.navbar-brand {
-    font-size: 1.2rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: #fff !important;
+.board-sub-nav {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 8px 16px;
+    backdrop-filter: blur(5px);
 }
 
-.lang-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    transition: var(--transition-speed);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-}
-
-.lang-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.dropdown-menu {
-    background: rgba(33, 37, 41, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
-    border-radius: 10px;
-}
-
-.dropdown-item {
-    color: white !important;
-    transition: background 0.2s;
-}
-
-.dropdown-item:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Выбор темы */
-.theme-picker {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 25px;
-    padding: 5px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.theme-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    margin: 0 4px;
-    cursor: pointer;
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    transition: transform 0.2s;
-    display: inline-block;
-}
-
-.theme-dot:hover { transform: scale(1.3); }
-
-/* =========================================
-   4. МОДАЛКИ
-   ========================================= */
-.modal-content {
-    background-color: #ffffff !important;
-    color: #172b4d !important;
-    border: none !important;
-    border-radius: 15px !important;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.4) !important;
-}
-
-/* =========================================
-   5. АВАТАР ПОЛЬЗОВАТЕЛЯ (SM)
-   ========================================= */
 .user-avatar-sm {
     width: 32px;
     height: 32px;
@@ -162,57 +152,30 @@ body {
     font-size: 0.85rem;
     font-weight: bold;
     color: white;
-    overflow: hidden; /* Чтобы картинка не выходила за границы круга */
+    overflow: hidden;
     border: 1.5px solid rgba(255, 255, 255, 0.4);
 }
 
 .user-avatar-sm img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Чтобы фото не сплющивалось */
+    object-fit: cover;
 }
 
 /* =========================================
-   6. ЧИСТКА ОТ МУСОРА GOOGLE TRANSLATE
+   5. ЧИСТКА GOOGLE TRANSLATE
    ========================================= */
 .goog-te-banner-frame.skiptranslate,
-.goog-te-banner-frame {
-    display: none !important;
-}
-
-body {
-    top: 0 !important;
-}
-
-.goog-te-balloon-frame {
-    display: none !important;
-}
-
-font {
-    background-color: transparent !important;
-    box-shadow: none !important;
-    display: inline !important;
-}
-
-#google_translate_element {
-    display: none !important;
-}
+.goog-te-banner-frame { display: none !important; }
+body { top: 0 !important; }
+.goog-te-balloon-frame { display: none !important; }
+font { background-color: transparent !important; box-shadow: none !important; display: inline !important; }
+#google_translate_element { display: none !important; }
 
 /* =========================================
-   7. ВСПОМОГАТЕЛЬНЫЕ СТИЛИ
+   6. СКРОЛЛБАРЫ
    ========================================= */
-/* Скроллбар */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
