@@ -113,8 +113,10 @@
 
     <script type="text/javascript">
         function googleTranslateElementInit() {
+            // Разрешаем Google сам определять исходный язык страницы
+            // (важно для перевода текста с китайского на русский)
             new google.translate.TranslateElement({
-                pageLanguage: 'ru',
+                pageLanguage: 'auto',
                 includedLanguages: 'en,uz,zh-CN,ru',
                 autoDisplay: false
             }, 'google_translate_element');

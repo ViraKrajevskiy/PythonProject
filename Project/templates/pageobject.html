@@ -92,7 +92,7 @@
                     {% for task in column.tasks.all %}
                     {% if not task.is_archived %}
                     <div class="card task-item {% if task.is_completed %}task-done{% endif %}"
-                         style="border-left: 5px solid {{ task.label_color|default:'#0052cc' }} !important;"
+                         data-label-color="{{ task.label_color|default:'#0052cc' }}"
                          onclick="if(!event.target.classList.contains('task-checkbox')){ openTaskModal('{{ task.id }}'); }">
 
                         <div class="d-flex align-items-start gap-2">
@@ -178,15 +178,20 @@
             <div class="modal-body">
                 <form action="{% url 'invite_user' board.id %}" method="POST" class="mb-3">
                     {% csrf_token %}
-                    <div class="input-group">
-                        <input type="text" name="username" class="form-control" placeholder="Имя пользователя" required>
-                        <button type="submit" class="btn btn-primary fw-bold">Добавить</button>
+                    <div class="mb-2">
+                        <input type="text" name="username" class="form-control mb-2" placeholder="Имя пользователя" required>
+                        <select name="role" class="form-select" required>
+                            <option value="viewer">Просмотр</option>
+                            <option value="editor">Изменение</option>
+                            <option value="admin">Админ</option>
+                        </select>
                     </div>
+                    <button type="submit" class="btn btn-primary fw-bold w-100">Добавить</button>
                 </form>
                 <div class="list-group">
                     {% for member in board.members.all %}
                     <div class="list-group-item d-flex justify-content-between align-items-center border-0 bg-light mb-2 rounded shadow-sm">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1">
                              <div class="user-avatar-sm" style="width:28px; height:28px; font-size:11px;">
                                 {% if member.user.avatar %}
                                     <img src="{{ member.user.avatar.url }}" class="rounded-circle w-100 h-100 object-fit-cover">
@@ -194,11 +199,19 @@
                                     {{ member.user.username|slice:":1"|upper }}
                                 {% endif %}
                              </div>
-                             <span>{{ member.user.username }} <small class="text-muted">({{ member.role }})</small></span>
+                             <span class="me-2">{{ member.user.username }}</span>
+                             <form action="{% url 'update_member_role' board.id member.id %}" method="POST" class="m-0 d-flex align-items-center gap-2">
+                                 {% csrf_token %}
+                                 <select name="role" class="form-select form-select-sm" style="width: auto; min-width: 120px;" onchange="this.form.submit()">
+                                     <option value="viewer" {% if member.role == 'viewer' %}selected{% endif %}>Просмотр</option>
+                                     <option value="editor" {% if member.role == 'editor' %}selected{% endif %}>Изменение</option>
+                                     <option value="admin" {% if member.role == 'admin' %}selected{% endif %}>Админ</option>
+                                 </select>
+                             </form>
                         </div>
                         <form action="{% url 'remove_member' board.id member.id %}" method="POST" class="m-0">
                             {% csrf_token %}
-                            <button class="btn btn-sm text-danger shadow-none">Удалить</button>
+                            <button class="btn btn-sm text-danger shadow-none" onclick="return confirm('Удалить участника?')">Удалить</button>
                         </form>
                     </div>
                     {% endfor %}

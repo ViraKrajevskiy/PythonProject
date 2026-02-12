@@ -107,6 +107,14 @@ function submitEditComment(id) {
 // 4. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 document.addEventListener('DOMContentLoaded', () => {
 
+    // 4.0. Установка цветов меток для задач
+    document.querySelectorAll('.task-item[data-label-color]').forEach(taskItem => {
+        const color = taskItem.getAttribute('data-label-color');
+        if (color) {
+            taskItem.style.borderLeft = `5px solid ${color} !important`;
+        }
+    });
+
     // 4.1. Проверка URL на наличие ID задачи (если перешли по ссылке)
     const urlParams = new URLSearchParams(window.location.search);
     const openTaskId = urlParams.get('open_task');

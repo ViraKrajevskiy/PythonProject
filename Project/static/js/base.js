@@ -10,18 +10,23 @@ function setCookie(name, value, days) {
 
 /**
  * 2. ЛОГИКА ПЕРЕВОДА ЯЗЫКА
+ *
+ * Используем официальный хак с кукой `googtrans=/auto/{lang}`,
+ * чтобы Google сам определял исходный язык (в т.ч. китайский)
+ * и переводил на выбранный.
  */
 function changeLang(langCode) {
     // Сохраняем код языка для иконки на кнопке
     localStorage.setItem('userLang', langCode);
 
     if (langCode === 'ru') {
-        // Очистка куки для возврата к исходному языку
+        // Возврат к оригиналу (любой язык -> исходный)
         document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
     } else {
-        // Формат куки Google Translate: /исходный_язык/целевой_язык
-        setCookie('googtrans', `/ru/${langCode}`, 1);
+        // Авто‑определение исходного языка, целевой — выбранный
+        // Работает для китайского -> русский, английский -> русский и т.д.
+        setCookie('googtrans', `/auto/${langCode}`, 1);
     }
 
     // Перезагрузка для применения изменений

@@ -8,11 +8,12 @@ from Project.Models_main.new import Board, Column, Task, BoardMember, Comment, T
 from django.contrib import messages
 from Project.models import User
 
+
 def get_user_role(user, board):
     if board.owner == user:
         return 'owner'
     try:
-        member = BoardMember.objects.get(board=board, user=user)
+        member = BoardMember.objects.select_related('user').get(board=board, user=user)
         return member.role
     except BoardMember.DoesNotExist:
         return None
@@ -20,7 +21,10 @@ def get_user_role(user, board):
 
 @login_required
 def get_task_details(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(
+        Task.objects.select_related('column__board', 'assigned_to').prefetch_related('files', 'comments__author'),
+        id=task_id
+    )
     board = task.column.board
     role = get_user_role(request.user, board)
 
@@ -35,6 +39,7 @@ def get_task_details(request, task_id):
         'all_users': all_assignable_users,
         'board': board
     })
+
 
 @login_required
 def update_board(request, board_id):
@@ -56,11 +61,13 @@ def update_board(request, board_id):
             messages.success(request, "Настройки обновлены.")
 
     return redirect('board_detail', board_id=board.id)
+
+
 @login_required
 def index(request):
     boards = Board.objects.filter(
         Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct().order_by('-created_at')
+    ).select_related('owner').prefetch_related('members__user').distinct().order_by('-created_at')
     return render(request, 'main_page.html', {'boards': boards})
 
 
@@ -85,6 +92,24 @@ def invite_user(request, board_id):
 
 
 @login_required
+def update_member_role(request, board_id, member_id):
+    # Только владелец доски может менять роли
+    board = get_object_or_404(Board, id=board_id, owner=request.user)
+    member = get_object_or_404(BoardMember, id=member_id, board=board)
+
+    if request.method == 'POST':
+        new_role = request.POST.get('role')
+        if new_role in ['viewer', 'editor', 'admin']:
+            member.role = new_role
+            member.save()
+            messages.success(request, f"Роль пользователя {member.user.username} изменена на {new_role}.")
+        else:
+            messages.error(request, "Некорректная роль.")
+
+    return redirect('board_detail', board_id=board.id)
+
+
+@login_required
 def remove_member(request, board_id, member_id):
     # Только владелец доски может выгонять людей
     board = get_object_or_404(Board, id=board_id, owner=request.user)
@@ -96,7 +121,10 @@ def remove_member(request, board_id, member_id):
 
 @login_required
 def board_detail(request, board_id):
-    board = get_object_or_404(Board, id=board_id)
+    board = get_object_or_404(
+        Board.objects.select_related('owner').prefetch_related('members__user'),
+        id=board_id
+    )
     role = get_user_role(request.user, board)
 
     if not board.is_public and role is None:
@@ -109,7 +137,10 @@ def board_detail(request, board_id):
     ).distinct()
 
     system_roles = User.ROLE_CHOICES
-    columns = board.columns.all().order_by('order')
+    columns = board.columns.prefetch_related(
+        'tasks__assigned_to',
+        'tasks__files'
+    ).all().order_by('order')
 
     return render(request, 'pageobject.html', {
         'board': board,
@@ -118,6 +149,7 @@ def board_detail(request, board_id):
         'all_users': all_assignable_users,
         'system_roles': system_roles
     })
+
 
 @login_required
 def create_board(request):
@@ -202,6 +234,7 @@ def update_column(request, column_id):
             column.title = new_title
             column.save()
     return redirect('board_detail', board_id=column.board.id)
+
 
 # --- ЛОГИКА ЗАДАЧ ---
 
@@ -292,8 +325,6 @@ def delete_task(request, task_id):
     return redirect('board_detail', board_id=board_id)
 
 
-
-
 def toggle_task(request, pk):
     task = get_object_or_404(Task, id=pk)
     role = get_user_role(request.user, task.column.board)
@@ -347,7 +378,7 @@ def board_page(request, board_id):
 
     # Если доска приватная и юзер не участник и не владелец
     if not board.is_public and role is None:
-        raise PermissionDenied # Выкинет ошибку 403
+        raise PermissionDenied  # Выкинет ошибку 403
 
     # Передаем роль в шаблон, чтобы скрыть/показать кнопки
     return render(request, 'pageobject.html', {

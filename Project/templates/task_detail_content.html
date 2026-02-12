@@ -17,7 +17,7 @@
         </div>
 
         <div class="modal-body px-4">
-            
+
             <div class="mb-4">
                 <label class="form-label small fw-bold text-muted translate-text">НАЗВАНИЕ КАРТОЧКИ</label>
                 <div class="translate-helper translate-text">{{ task.text }}</div>
@@ -37,8 +37,8 @@
 
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted translate-text">СРОК (ДЕДЛАЙН)</label>
-                    <input type="date" name="due_date" class="form-control" 
-                           value="{{ task.due_date|date:'Y-m-d' }}" 
+                    <input type="datetime-local" name="due_date" class="form-control"
+                           value="{{ task.due_date|date:'Y-m-d\\TH:i' }}"
                            {% if role == 'viewer' %}disabled{% endif %}>
                 </div>
 
@@ -50,8 +50,8 @@
 
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted translate-text">ЦВЕТ МЕТКИ</label>
-                    <input type="color" name="label_color" class="form-control form-control-color" 
-                           value="{{ task.label_color|default:'#0052cc' }}" 
+                    <input type="color" name="label_color" class="form-control form-control-color"
+                           value="{{ task.label_color|default:'#0052cc' }}"
                            {% if role == 'viewer' %}disabled{% endif %}>
                 </div>
             </div>
@@ -67,7 +67,7 @@
                 {% if role != 'viewer' %}
                 <input type="file" name="attachment" class="form-control form-control-sm mb-2">
                 {% endif %}
-                
+
                 <div class="file-list">
                     {% for file in task.files.all %}
                     <div class="p-2 mb-1 bg-light rounded border d-flex justify-content-between align-items-center">
@@ -111,7 +111,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            
+
                             <div id="comment-text-{{ comment.id }}" class="small text-dark translate-text">
                                 {{ comment.content }}
                             </div>

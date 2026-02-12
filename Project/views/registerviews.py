@@ -11,7 +11,10 @@ from Project.Models_main.new import Comment
 
 @login_required
 def edit_comment(request, comment_id):
-    comment = get_object_or_404(Comment, id=comment_id)
+    comment = get_object_or_404(
+        Comment.objects.select_related('task__column__board', 'author'),
+        id=comment_id
+    )
     if comment.author != request.user:
         raise PermissionDenied
 
@@ -25,7 +28,10 @@ def edit_comment(request, comment_id):
 
 @login_required
 def delete_comment(request, comment_id):
-    comment = get_object_or_404(Comment, id=comment_id)
+    comment = get_object_or_404(
+        Comment.objects.select_related('task__column__board', 'author', 'task__column__board__owner'),
+        id=comment_id
+    )
     board = comment.task.column.board
 
     if comment.author == request.user or board.owner == request.user:
