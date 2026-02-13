@@ -4,35 +4,17 @@
 :root {
     --bg-main: linear-gradient(-45deg, #0079bf, #5067d3, #026aa7, #2980b9);
     --card-bg: rgba(255, 255, 255, 0.1);
-    --column-bg: #ebecf0; /* Светло-серый стандарт Trello */
+    --column-bg: #ebecf0;
     --accent-color: #ffffff;
     --transition-speed: 0.3s;
 }
 
-html.theme-purple, body.theme-purple {
-    --bg-main: linear-gradient(-45deg, #89609e, #cd8de5, #6c5ce7, #a29bfe);
-    --card-bg: rgba(137, 96, 158, 0.25);
-}
-html.theme-green, body.theme-green {
-    --bg-main: linear-gradient(-45deg, #519839, #90d379, #27ae60, #2ecc71);
-    --card-bg: rgba(81, 152, 57, 0.25);
-}
-html.theme-orange, body.theme-orange {
-    --bg-main: linear-gradient(-45deg, #d29034, #f3bc6d, #e67e22, #f39c12);
-    --card-bg: rgba(210, 144, 52, 0.25);
-}
-html.theme-red, body.theme-red {
-    --bg-main: linear-gradient(-45deg, #b04632, #dd5f47, #c0392b, #e74c3c);
-    --card-bg: rgba(176, 70, 50, 0.25);
-}
-html.theme-pink, body.theme-pink {
-    --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8);
-    --card-bg: rgba(205, 90, 145, 0.25);
-}
-html.theme-dark, body.theme-dark {
-    --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c);
-    --card-bg: rgba(255, 255, 255, 0.05);
-}
+html.theme-purple, body.theme-purple { --bg-main: linear-gradient(-45deg, #89609e, #cd8de5, #6c5ce7, #a29bfe); --card-bg: rgba(137, 96, 158, 0.25); }
+html.theme-green, body.theme-green { --bg-main: linear-gradient(-45deg, #519839, #90d379, #27ae60, #2ecc71); --card-bg: rgba(81, 152, 57, 0.25); }
+html.theme-orange, body.theme-orange { --bg-main: linear-gradient(-45deg, #d29034, #f3bc6d, #e67e22, #f39c12); --card-bg: rgba(210, 144, 52, 0.25); }
+html.theme-red, body.theme-red { --bg-main: linear-gradient(-45deg, #b04632, #dd5f47, #c0392b, #e74c3c); --card-bg: rgba(176, 70, 50, 0.25); }
+html.theme-pink, body.theme-pink { --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8); --card-bg: rgba(205, 90, 145, 0.25); }
+html.theme-dark, body.theme-dark { --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c); --card-bg: rgba(255, 255, 255, 0.05); }
 
 /* Анимация фона */
 html.animated-bg body,
@@ -48,82 +30,25 @@ body.animated-bg {
 }
 
 /* =========================================
-   2. БАЗОВЫЕ СТИЛИ
+   2. БАЗОВЫЕ СТИЛИ И СКРОЛЛ
    ========================================= */
 body {
     font-family: 'Inter', sans-serif;
     color: #172b4d;
-    height: 100vh;
+    /* Важно: используем min-height вместо height */
+    min-height: 100vh;
     background: var(--bg-main) no-repeat center center fixed !important;
     background-size: cover !important;
     margin: 0;
-    overflow: hidden; /* Запрещаем общий скролл страницы */
+    /* ВКЛЮЧАЕМ СКРОЛЛ */
+    overflow-y: auto !important;
+    overflow-x: hidden;
     top: 0 !important;
     position: static !important;
 }
 
-/* Контейнер доски */
-.board-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-/* Холст для колонок (Горизонтальный скролл) */
-.board-canvas {
-    display: flex;
-    flex-grow: 1;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 10px;
-    gap: 12px;
-    align-items: flex-start;
-}
-
 /* =========================================
-   3. КОЛОНКИ И КАРТОЧКИ (TRELLO STYLE)
-   ========================================= */
-.column-wrapper {
-    width: 272px;
-    flex-shrink: 0;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.column-card {
-    background-color: #f1f2f4;
-    border-radius: 12px;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.task-container {
-    overflow-y: auto;
-    flex-grow: 1;
-    padding: 8px;
-}
-
-/* Карточка задачи */
-.task-item {
-    background: white;
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    cursor: pointer;
-    transition: background 0.2s;
-    border: none !important;
-}
-
-.task-item:hover {
-    background: #f9fafb;
-}
-
-/* =========================================
-   4. НАВИГАЦИЯ И ИНТЕРФЕЙС
+   3. НАВИГАЦИЯ И ИНТЕРФЕЙС
    ========================================= */
 .navbar {
     background: rgba(0, 0, 0, 0.2) !important;
@@ -133,12 +58,6 @@ body {
     height: 64px;
     position: relative;
     z-index: 1000;
-}
-
-.board-sub-nav {
-    background: rgba(0, 0, 0, 0.15);
-    padding: 8px 16px;
-    backdrop-filter: blur(5px);
 }
 
 .user-avatar-sm {
@@ -162,8 +81,37 @@ body {
     object-fit: cover;
 }
 
+/* Кнопки переключения языка */
+.lang-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.lang-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Точки выбора темы */
+.theme-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin: 0 4px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s;
+}
+
+.theme-dot:hover {
+    transform: scale(1.3);
+}
+
 /* =========================================
-   5. ЧИСТКА GOOGLE TRANSLATE
+   4. ЧИСТКА GOOGLE TRANSLATE
    ========================================= */
 .goog-te-banner-frame.skiptranslate,
 .goog-te-banner-frame { display: none !important; }
@@ -173,9 +121,22 @@ font { background-color: transparent !important; box-shadow: none !important; di
 #google_translate_element { display: none !important; }
 
 /* =========================================
-   6. СКРОЛЛБАРЫ
+   5. КАСТОМНЫЕ СКРОЛЛБАРЫ (ЧТОБЫ БЫЛО ВИДНО)
    ========================================= */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}

@@ -237,7 +237,3 @@
 
 .task-container::-webkit-scrollbar { width: 6px; }
 .task-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
-body {
-    overflow: hidden;
-}
