@@ -88,10 +88,10 @@
                     {% endif %}
                 </div>
 
-                <div class="card-body task-container">
+                <div class="card-body task-container" data-column-id="{{ column.id }}">
                     {% for task in column.tasks.all %}
                     {% if not task.is_archived %}
-                    <div class="card task-item"
+                    <div class="card task-item" data-task-id="{{ task.id }}"
                          style="border-left: 4px solid {{ task.label_color|default:'#0052cc' }} !important;"
                          onclick="if(!event.target.classList.contains('task-checkbox')){ openTaskModal('{{ task.id }}'); }">
 
@@ -227,13 +227,12 @@
 
 <div class="modal fade" id="universalTaskModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0" id="taskModalContent">
-            </div>
+        <div class="modal-content border-0" id="taskModalContent"></div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="{% static 'js/board_page.js' %}"></script>
 {% endblock %}

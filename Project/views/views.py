@@ -7,7 +7,38 @@ from django.urls import reverse
 from Project.Models_main.new import Board, Column, Task, BoardMember, Comment, TaskFile
 from django.contrib import messages
 from Project.models import User
+from django.http import JsonResponse
 
+
+@login_required
+def update_task_column(request):
+    """
+    Обработчик AJAX для перемещения задачи между колонками (Drag-and-Drop)
+    """
+    if request.method == 'POST':
+        task_id = request.POST.get('task_id')
+        column_id = request.POST.get('column_id')
+
+        # Получаем задачу и колонку
+        task = get_object_or_404(Task, id=task_id)
+        new_column = get_object_or_404(Column, id=column_id)
+
+        # Проверка прав доступа: может ли пользователь менять что-то на этой доске
+        role = get_user_role(request.user, new_column.board)
+
+        if role == 'viewer' or role is None:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'У вас нет прав для перемещения задач'
+            }, status=403)
+
+        # Меняем колонку и сохраняем
+        task.column = new_column
+        task.save()
+
+        return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 def get_user_role(user, board):
     if board.owner == user:

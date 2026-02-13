@@ -1,6 +1,6 @@
 /**
  * Online Trello - Final JS Controller
- * Управление доской, задачами, комментариями и динамической загрузкой
+ * Управление доской, задачами, комментариями, перемещением карточек и динамической загрузкой
  */
 
 // 1. ОТКРЫТИЕ МОДАЛКИ ЗАДАЧИ ЧЕРЕЗ AJAX
@@ -25,7 +25,7 @@ function openTaskModal(taskId) {
     }
     modalInstance.show();
 
-    // Запрос HTML-контента задачи (View: task_detail_view)
+    // Запрос HTML-контента задачи
     fetch(`/task/${taskId}/get_details/`)
         .then(response => {
             if (!response.ok) throw new Error('Ошибка сети');
@@ -40,7 +40,7 @@ function openTaskModal(taskId) {
                 scrollList.scrollTop = scrollList.scrollHeight;
             }
 
-            // Обновляем URL (для возможности поделиться ссылкой)
+            // Обновляем URL
             const url = new URL(window.location);
             url.searchParams.set('open_task', taskId);
             window.history.pushState({}, '', url);
@@ -63,20 +63,17 @@ function toggleEditComment(id) {
 
     if (textDiv && editDiv) {
         if (editDiv.classList.contains('d-none')) {
-            // Включаем режим правки
             editDiv.classList.remove('d-none');
             textDiv.classList.add('d-none');
 
             const area = editDiv.querySelector('textarea');
             if (area) {
                 area.focus();
-                // Ставим курсор в конец текста
                 const val = area.value;
                 area.value = '';
                 area.value = val;
             }
         } else {
-            // Отмена
             editDiv.classList.add('d-none');
             textDiv.classList.remove('d-none');
         }
@@ -95,19 +92,77 @@ function submitEditComment(id) {
 
         hiddenInput.value = content;
 
-        // Визуальная блокировка кнопки
-        const btn = event.currentTarget;
-        btn.disabled = true;
-        btn.innerHTML = '...';
+        // Блокировка кнопки (ищем внутри edit-box)
+        const editBox = document.getElementById('edit-box-' + id);
+        const btn = editBox.querySelector('button.btn-success');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '...';
+        }
 
         form.submit();
     }
 }
 
-// 4. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+// 4. ФУНКЦИЯ СОХРАНЕНИЯ ПЕРЕМЕЩЕНИЯ КАРТОЧКИ (AJAX)
+function saveTaskMovement(taskId, columnId) {
+    const formData = new FormData();
+    formData.append('task_id', taskId);
+    formData.append('column_id', columnId);
+
+    // Получаем CSRF токен из любой формы на странице
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch('/update-task-column/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error('Ошибка сохранения:', data.message);
+            // Если на сервере произошла ошибка, лучше перезагрузить страницу
+            // location.reload();
+        }
+    })
+    .catch(err => {
+        console.error('Сетевая ошибка при перемещении:', err);
+    });
+}
+
+// 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 4.0. Установка цветов меток для задач
+    // 5.1. Подключение Drag-and-Drop (SortableJS)
+    const taskContainers = document.querySelectorAll('.task-container');
+
+    taskContainers.forEach(container => {
+        new Sortable(container, {
+            group: 'shared_tasks', // Позволяет перемещать между всеми колонками
+            animation: 150,
+            ghostClass: 'task-ghost',   // Класс для пустого места (добавь в CSS)
+            chosenClass: 'task-chosen', // Класс при захвате (добавь в CSS)
+            dragClass: 'task-drag',
+            fallbackOnBody: true,
+            swapThreshold: 0.65,
+
+            // Срабатывает при завершении перетаскивания
+            onEnd: function (evt) {
+                const taskId = evt.item.getAttribute('data-task-id');
+                const newColumnId = evt.to.getAttribute('data-column-id');
+
+                // Отправляем на сервер только если колонка изменилась
+                if (evt.from !== evt.to) {
+                    saveTaskMovement(taskId, newColumnId);
+                }
+            }
+        });
+    });
+
+    // 5.2. Установка цветов меток для задач
     document.querySelectorAll('.task-item[data-label-color]').forEach(taskItem => {
         const color = taskItem.getAttribute('data-label-color');
         if (color) {
@@ -115,14 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4.1. Проверка URL на наличие ID задачи (если перешли по ссылке)
+    // 5.3. Проверка URL на наличие ID задачи
     const urlParams = new URLSearchParams(window.location.search);
     const openTaskId = urlParams.get('open_task');
     if (openTaskId) {
         openTaskModal(openTaskId);
     }
 
-    // 4.2. Очистка URL при закрытии модалки
+    // 5.4. Очистка URL при закрытии модалки
     const modalEl = document.getElementById('universalTaskModal');
     if (modalEl) {
         modalEl.addEventListener('hidden.bs.modal', () => {
@@ -132,18 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4.3. Обработка горячих клавиш (Ctrl + Enter для отправки)
+    // 5.5. Обработка горячих клавиш (Ctrl + Enter)
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             const active = document.activeElement;
             if (active && active.tagName === 'TEXTAREA') {
-                // Если это textarea в блоке редактирования комментария
                 if (active.id.startsWith('edit-textarea-')) {
                     const id = active.id.split('-').pop();
                     submitEditComment(id);
-                }
-                // Если это обычная форма (например, описание или новый коммент)
-                else {
+                } else {
                     const form = active.closest('form');
                     if (form) form.submit();
                 }

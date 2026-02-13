@@ -64,6 +64,7 @@
     overflow-x: hidden;
     padding: 4px 12px 12px !important;
     flex-grow: 1;
+    min-height: 50px; /* Важно для Drag-and-Drop в пустую колонку */
 }
 
 /* Стеклянный эффект для кнопки "Добавить список" */
@@ -87,6 +88,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     cursor: pointer;
+    position: relative;
 }
 
 .task-item:hover {
@@ -100,6 +102,28 @@
 
 .task-done .task-text {
     text-decoration: line-through;
+}
+
+/* --- СТИЛИ ДЛЯ DRAG AND DROP (SortableJS) --- */
+
+/* Класс для элемента, который сейчас тянут (в руке) */
+.task-drag {
+    opacity: 0;
+}
+
+/* Класс для "призрака" (пустое место, куда упадет карточка) */
+.task-ghost {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border: 2px dashed #ccc !important;
+    border-left: none !important; /* Убираем цветную полоску у призрака */
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Класс для выбранного элемента */
+.task-chosen {
+    background: #f8f9fa !important;
+    transform: rotate(2deg);
 }
 
 /* =========================================

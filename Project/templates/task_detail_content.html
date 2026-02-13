@@ -17,10 +17,9 @@
         </div>
 
         <div class="modal-body px-4">
-
             <div class="mb-4">
                 <label class="form-label small fw-bold text-muted translate-text">НАЗВАНИЕ КАРТОЧКИ</label>
-                <div class="translate-helper translate-text">{{ task.text }}</div>
+                <div class="translate-helper translate-text mb-2">{{ task.text }}</div>
                 <textarea name="text" class="form-control fw-bold" rows="2" required {% if role == 'viewer' %}disabled{% endif %}>{{ task.text }}</textarea>
             </div>
 
@@ -30,7 +29,7 @@
                     <select name="assigned_to" class="form-select" {% if role == 'viewer' %}disabled{% endif %}>
                         <option value="" class="translate-text">-- Не назначен --</option>
                         {% for u in all_users %}
-                            <option value="{{ u.id }}" {% if task.assigned_to == u %}selected{% endif %}>{{ u.username }}</option>
+                            <option value="{{ u.id }}" {% if task.assigned_to.id == u.id %}selected{% endif %}>{{ u.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -44,13 +43,13 @@
 
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted translate-text">МЕТКА (РОЛЬ)</label>
-                    <div class="translate-helper translate-text">{% if task.task_role %}{{ task.task_role }}{% else %}Нет роли{% endif %}</div>
+                    <div class="translate-helper translate-text mb-1">{% if task.task_role %}{{ task.task_role }}{% else %}Нет роли{% endif %}</div>
                     <input type="text" name="task_role" class="form-control" value="{{ task.task_role|default:'' }}" {% if role == 'viewer' %}disabled{% endif %}>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted translate-text">ЦВЕТ МЕТКИ</label>
-                    <input type="color" name="label_color" class="form-control form-control-color"
+                    <input type="color" name="label_color" class="form-control form-control-color w-100"
                            value="{{ task.label_color|default:'#0052cc' }}"
                            {% if role == 'viewer' %}disabled{% endif %}>
                 </div>
@@ -58,7 +57,7 @@
 
             <div class="mt-4 mb-4">
                 <label class="form-label small fw-bold text-muted translate-text">ОПИСАНИЕ</label>
-                <div class="translate-helper translate-text">{% if task.description %}{{ task.description }}{% else %}Нет описания{% endif %}</div>
+                <div class="translate-helper translate-text mb-2">{% if task.description %}{{ task.description }}{% else %}Нет описания{% endif %}</div>
                 <textarea name="description" class="form-control" rows="3" {% if role == 'viewer' %}disabled{% endif %}>{{ task.description|default:"" }}</textarea>
             </div>
 
@@ -161,14 +160,19 @@
     </form>
 
     <form id="addCommentForm" action="{% url 'add_comment' task.id %}" method="POST" style="display: none;">{% csrf_token %}</form>
+
     {% for comment in task.comments.all %}
         {% if comment.author == user %}
         <form id="editCommentForm{{ comment.id }}" action="{% url 'edit_comment' comment.id %}" method="POST" style="display: none;">
-            {% csrf_token %}<input type="hidden" name="content" id="hidden-edit-input-{{ comment.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="content" id="hidden-edit-input-{{ comment.id }}">
         </form>
         {% endif %}
+
         {% if comment.author == user or board.owner == user %}
-        <form id="deleteCommentForm{{ comment.id }}" action="{% url 'delete_comment' comment.id %}" method="POST" style="display: none;">{% csrf_token %}</form>
+        <form id="deleteCommentForm{{ comment.id }}" action="{% url 'delete_comment' comment.id %}" method="POST" style="display: none;">
+            {% csrf_token %}
+        </form>
         {% endif %}
     {% endfor %}
 </div>

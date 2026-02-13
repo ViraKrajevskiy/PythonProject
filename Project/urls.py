@@ -2,14 +2,16 @@ from django.urls import path
 from Project.views.profile import profile_view
 from Project.views.registerviews import register_view, login_view, logout_view, edit_comment, delete_comment
 from Project.views.views import index, board_detail, create_board, delete_board, update_board, add_comment, \
-    get_task_details, delete_column, create_column, update_column, invite_user, add_task, remove_member, update_member_role, update_task, \
-    delete_task, toggle_task, archive_task
+    get_task_details, delete_column, create_column, update_column, invite_user, add_task, remove_member, \
+    update_member_role, update_task, \
+    delete_task, toggle_task, archive_task, update_task_column
 
 urlpatterns = [
 
     path('main/', index, name='index'),
     path('profile/', profile_view, name='profile'),
 
+    path('update-task-column/', update_task_column, name='update_task_column'),
     path('board/<int:board_id>/', board_detail, name='board_detail'),
     path('board/create/', create_board, name='create_board'),
     path('board/delete/<int:board_id>/', delete_board, name='delete_board'),
