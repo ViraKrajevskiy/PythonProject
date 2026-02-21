@@ -3,10 +3,9 @@
    ========================================= */
 
 .board-wrapper {
-    height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .board-sub-nav {
@@ -20,14 +19,15 @@
 }
 
 .board-canvas {
-    flex-grow: 1;
+    flex: 1;
     display: flex;
     align-items: flex-start;
     gap: 1.25rem;
     padding: 20px;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     white-space: nowrap;
+    min-height: 0;
 }
 
 /* =========================================
@@ -37,7 +37,6 @@
 .column-wrapper {
     width: 300px;
     min-width: 300px;
-    max-height: 100%;
     display: inline-block;
     vertical-align: top;
     white-space: normal;
@@ -48,7 +47,6 @@
     border-radius: 12px !important;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
     border: none !important;
 }
@@ -60,11 +58,13 @@
 }
 
 .task-container {
-    overflow-y: auto;
     overflow-x: hidden;
     padding: 4px 12px 12px !important;
-    flex-grow: 1;
-    min-height: 50px; /* Важно для Drag-and-Drop в пустую колонку */
+    min-height: 50px;
+}
+
+.column-card .card-footer {
+    flex-shrink: 0;
 }
 
 /* Стеклянный эффект для кнопки "Добавить список" */
@@ -187,6 +187,32 @@
     text-transform: uppercase;
 }
 
+/* Голосование на карточке (снаружи): варианты в столбик + отметка */
+.poll-on-card {
+    cursor: default;
+}
+
+.poll-on-card-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.poll-card-option-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.poll-vote-btn-card {
+    font-size: 0.7rem;
+    line-height: 1.2;
+}
+
+.poll-vote-btn-card.btn-primary {
+    border-color: var(--bs-primary);
+}
+
 /* Стили для Input Color */
 .form-control-color {
     height: 38px;
@@ -199,6 +225,50 @@
 /* =========================================
    6. МОДАЛЬНОЕ ОКНО И ХЕЛПЕРЫ
    ========================================= */
+
+#universalTaskModal .modal-dialog {
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+}
+
+#universalTaskModal .modal-content {
+    border-radius: 12px !important;
+    border: none !important;
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#taskModalContent .task-modal-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+}
+
+#taskModalContent .task-modal-wrapper form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#taskModalContent .task-modal-wrapper .modal-header {
+    flex-shrink: 0;
+}
+
+#taskModalContent .task-modal-wrapper .modal-body {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+#taskModalContent .task-modal-wrapper .modal-footer {
+    flex-shrink: 0;
+}
 
 .modal-content {
     border-radius: 12px !important;
@@ -234,6 +304,18 @@
     max-height: 350px;
     overflow-y: auto;
     padding-right: 8px;
+}
+
+.poll-option-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.poll-option-row:hover {
+    background: rgba(0, 82, 204, 0.08);
+}
+.poll-option-row .cursor-pointer,
+label.cursor-pointer {
+    cursor: pointer;
 }
 
 .comment-item {

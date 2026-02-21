@@ -39,6 +39,10 @@ class Column(models.Model):
 
 # 5. Задачи
 class Task(models.Model):
+    CARD_TYPE_CHOICES = [
+        ('task', 'Задача'),
+        ('poll', 'Голосование'),
+    ]
     column = models.ForeignKey(Column, related_name='tasks', on_delete=models.CASCADE)
     text = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -48,9 +52,26 @@ class Task(models.Model):
     is_archived = models.BooleanField(default=False)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     task_role = models.CharField(max_length=50, blank=True, null=True)
+    card_type = models.CharField(max_length=20, choices=CARD_TYPE_CHOICES, default='task')
 
     def __str__(self):
         return self.text
+
+
+# 5b. Голосование (опрос) — привязан к карточке типа poll
+class Poll(models.Model):
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='poll')
+    question = models.CharField(max_length=255, blank=True)
+
+    def total_votes(self):
+        return sum(opt.votes.count() for opt in self.options.all())
+
+
+class PollOption(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='options')
+    text = models.CharField(max_length=100)
+    order = models.IntegerField(default=0)
+    votes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='poll_votes', blank=True)
 
 class TaskFile(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='files')

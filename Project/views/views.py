@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django.urls import reverse
 
-from Project.Models_main.new import Board, Column, Task, BoardMember, Comment, TaskFile
+from Project.Models_main.new import Board, Column, Task, BoardMember, Comment, TaskFile, Poll, PollOption
 from django.contrib import messages
 from Project.models import User
 from django.http import JsonResponse
@@ -64,11 +64,31 @@ def get_task_details(request, task_id):
         Q(id__in=members_ids) | Q(id=board.owner.id)
     ).distinct()
 
+    poll = None
+    poll_options_with_pct = []
+    user_voted_option_id = None
+    if task.card_type == 'poll':
+        poll, _ = Poll.objects.get_or_create(task=task, defaults={'question': task.text})
+        options = list(poll.options.order_by('order', 'id'))
+        total = sum(o.votes.count() for o in options)
+        for opt in options:
+            cnt = opt.votes.count()
+            pct = round((cnt / total * 100) if total else 0)
+            poll_options_with_pct.append({'option': opt, 'count': cnt, 'percent': pct})
+        if request.user.is_authenticated:
+            for opt in poll.options.all():
+                if opt.votes.filter(id=request.user.id).exists():
+                    user_voted_option_id = opt.id
+                    break
+
     return render(request, 'task_detail_content.html', {
         'task': task,
         'role': role,
         'all_users': all_assignable_users,
-        'board': board
+        'board': board,
+        'poll': poll,
+        'poll_options_with_pct': poll_options_with_pct,
+        'user_voted_option_id': user_voted_option_id,
     })
 
 
@@ -104,7 +124,10 @@ def index(request):
 
 @login_required
 def invite_user(request, board_id):
-    board = get_object_or_404(Board, id=board_id, owner=request.user)
+    board = get_object_or_404(Board, id=board_id)
+    role = get_user_role(request.user, board)
+    if role not in ['owner', 'admin']:
+        raise PermissionDenied
     if request.method == 'POST':
         username = request.POST.get('username')
         role = request.POST.get('role', 'viewer')
@@ -124,8 +147,10 @@ def invite_user(request, board_id):
 
 @login_required
 def update_member_role(request, board_id, member_id):
-    # Только владелец доски может менять роли
-    board = get_object_or_404(Board, id=board_id, owner=request.user)
+    board = get_object_or_404(Board, id=board_id)
+    role = get_user_role(request.user, board)
+    if role not in ['owner', 'admin']:
+        raise PermissionDenied
     member = get_object_or_404(BoardMember, id=member_id, board=board)
 
     if request.method == 'POST':
@@ -142,8 +167,10 @@ def update_member_role(request, board_id, member_id):
 
 @login_required
 def remove_member(request, board_id, member_id):
-    # Только владелец доски может выгонять людей
-    board = get_object_or_404(Board, id=board_id, owner=request.user)
+    board = get_object_or_404(Board, id=board_id)
+    role = get_user_role(request.user, board)
+    if role not in ['owner', 'admin']:
+        raise PermissionDenied
     member = get_object_or_404(BoardMember, id=member_id, board=board)
     member.delete()
     messages.success(request, "Участник удален.")
@@ -153,7 +180,13 @@ def remove_member(request, board_id, member_id):
 @login_required
 def board_detail(request, board_id):
     board = get_object_or_404(
-        Board.objects.select_related('owner').prefetch_related('members__user'),
+        Board.objects.select_related('owner')
+        .prefetch_related(
+            'members__user',
+            'columns__tasks__poll__options',
+            'columns__tasks__assigned_to',
+            'columns__tasks__files',
+        ),
         id=board_id
     )
     role = get_user_role(request.user, board)
@@ -161,24 +194,40 @@ def board_detail(request, board_id):
     if not board.is_public and role is None:
         raise PermissionDenied
 
-    # Список всех участников для выбора ответственного (участники + владелец)
     members_ids = BoardMember.objects.filter(board=board).values_list('user_id', flat=True)
     all_assignable_users = User.objects.filter(
         Q(id__in=members_ids) | Q(id=board.owner.id)
     ).distinct()
 
     system_roles = User.ROLE_CHOICES
-    columns = board.columns.prefetch_related(
-        'tasks__assigned_to',
-        'tasks__files'
-    ).all().order_by('order')
+    columns = board.columns.all().order_by('order')
+
+    poll_stats = {}
+    user_poll_votes = {}
+    for col in board.columns.all():
+        for task in col.tasks.filter(is_archived=False):
+            poll = getattr(task, 'poll', None)
+            if task.card_type == 'poll' and poll:
+                opts = list(poll.options.order_by('order', 'id'))
+                total = sum(o.votes.count() for o in opts)
+                poll_stats[task.id] = [
+                    {'id': o.id, 'text': o.text, 'percent': round((o.votes.count() / total * 100) if total else 0)}
+                    for o in opts
+                ]
+                if request.user.is_authenticated:
+                    for o in poll.options.all():
+                        if o.votes.filter(id=request.user.id).exists():
+                            user_poll_votes[task.id] = o.id
+                            break
 
     return render(request, 'pageobject.html', {
         'board': board,
         'columns': columns,
         'role': role,
         'all_users': all_assignable_users,
-        'system_roles': system_roles
+        'system_roles': system_roles,
+        'poll_stats': poll_stats,
+        'user_poll_votes': user_poll_votes,
     })
 
 
@@ -307,9 +356,15 @@ def update_task(request, task_id):
             return redirect('board_detail', board_id=board.id)
 
         # 3. Сохранение основных данных
-        task.text = request.POST.get('text')
-        task.description = request.POST.get('description')
-        task.task_role = request.POST.get('task_role')
+        task.text = request.POST.get('text', '').strip() or task.text
+        desc = request.POST.get('description', '').strip()
+        task.description = desc if desc else None
+        task_role_input = request.POST.get('task_role', '').strip()
+        card_type = request.POST.get('card_type')
+        if card_type in ('task', 'poll'):
+            task.card_type = card_type
+        if task.card_type == 'poll':
+            Poll.objects.get_or_create(task=task, defaults={'question': task.text})
 
         # Сохраняем цвет метки
         task.label_color = request.POST.get('label_color', '#ffffff')
@@ -325,8 +380,14 @@ def update_task(request, task_id):
         assigned_id = request.POST.get('assigned_to')
         if assigned_id:
             task.assigned_to = User.objects.filter(id=assigned_id).first()
+            # Если роль карточки не указана — подставить роль пользователя из модели User
+            if not task_role_input and task.assigned_to:
+                task.task_role = task.assigned_to.get_role_display()
+            else:
+                task.task_role = task_role_input or None
         else:
             task.assigned_to = None
+            task.task_role = task_role_input or None
 
         # 4. Логика вложений (файлов)
         # Если в форме поле называется 'attachment' (как в моем прошлом HTML)
@@ -404,17 +465,31 @@ def archive_task(request, pk):
 
 @login_required
 def board_page(request, board_id):
-    board = get_object_or_404(Board, id=board_id)
+    board = get_object_or_404(
+        Board.objects.prefetch_related('columns__tasks__poll__options'),
+        id=board_id
+    )
     role = get_user_role(request.user, board)
 
-    # Если доска приватная и юзер не участник и не владелец
     if not board.is_public and role is None:
-        raise PermissionDenied  # Выкинет ошибку 403
+        raise PermissionDenied
 
-    # Передаем роль в шаблон, чтобы скрыть/показать кнопки
+    poll_stats = {}
+    for col in board.columns.all():
+        for task in col.tasks.filter(is_archived=False):
+            poll = getattr(task, 'poll', None)
+            if task.card_type == 'poll' and poll:
+                opts = list(poll.options.order_by('order', 'id'))
+                total = sum(o.votes.count() for o in opts)
+                poll_stats[task.id] = [
+                    {'text': o.text, 'percent': round((o.votes.count() / total * 100) if total else 0)}
+                    for o in opts
+                ]
+
     return render(request, 'pageobject.html', {
         'board': board,
-        'role': role
+        'role': role,
+        'poll_stats': poll_stats,
     })
 
 
@@ -432,7 +507,12 @@ def add_task(request):
             return redirect('board_detail', board_id=column.board.id)
 
         if text:
-            Task.objects.create(column=column, text=text)
+            card_type = request.POST.get('card_type', 'task')
+            if card_type not in ('task', 'poll'):
+                card_type = 'task'
+            task = Task.objects.create(column=column, text=text, card_type=card_type)
+            if card_type == 'poll':
+                Poll.objects.create(task=task, question=text)
         return redirect('board_detail', board_id=column.board.id)
     return redirect('index')
 
@@ -454,4 +534,58 @@ def add_comment(request, task_id):
             messages.warning(request, "Нельзя отправить пустой комментарий.")
 
     # Добавляем ?open_task, чтобы модалка не закрылась
+    return redirect(f"{reverse('board_detail', args=[board.id])}?open_task={task.id}")
+
+
+@login_required
+def add_poll_option(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    board = task.column.board
+    role = get_user_role(request.user, board)
+    if role == 'viewer' or role is None:
+        messages.error(request, "Нет прав для добавления вариантов.")
+        return redirect('board_detail', board_id=board.id)
+    if task.card_type != 'poll':
+        messages.error(request, "Это не карточка голосования.")
+        return redirect('board_detail', board_id=board.id)
+    poll = get_object_or_404(Poll, task=task)
+    if request.method == 'POST':
+        text = (request.POST.get('text') or '').strip()
+        if text:
+            last = poll.options.order_by('-order').first()
+            order = (last.order + 1) if last else 0
+            PollOption.objects.create(poll=poll, text=text, order=order)
+            messages.success(request, "Вариант добавлен.")
+    return redirect(f"{reverse('board_detail', args=[board.id])}?open_task={task.id}")
+
+
+@login_required
+def remove_poll_option(request, option_id):
+    option = get_object_or_404(PollOption, id=option_id)
+    task = option.poll.task
+    board = task.column.board
+    role = get_user_role(request.user, board)
+    if role == 'viewer' or role is None:
+        messages.error(request, "Нет прав для удаления вариантов.")
+        return redirect('board_detail', board_id=board.id)
+    option.delete()
+    messages.success(request, "Вариант удалён.")
+    return redirect(f"{reverse('board_detail', args=[board.id])}?open_task={task.id}")
+
+
+@login_required
+def vote_poll(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    board = task.column.board
+    if task.card_type != 'poll':
+        return redirect('board_detail', board_id=board.id)
+    poll = get_object_or_404(Poll, task=task)
+    if request.method == 'POST':
+        option_id = request.POST.get('option_id')
+        option = poll.options.filter(id=option_id).first()
+        if option:
+            for opt in poll.options.all():
+                opt.votes.remove(request.user)
+            option.votes.add(request.user)
+            messages.success(request, "Голос учтён.")
     return redirect(f"{reverse('board_detail', args=[board.id])}?open_task={task.id}")

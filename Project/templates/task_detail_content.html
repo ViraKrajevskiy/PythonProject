@@ -29,7 +29,7 @@
                     <select name="assigned_to" class="form-select" {% if role == 'viewer' %}disabled{% endif %}>
                         <option value="" class="translate-text">-- Не назначен --</option>
                         {% for u in all_users %}
-                            <option value="{{ u.id }}" {% if task.assigned_to.id == u.id %}selected{% endif %}>{{ u.username }}</option>
+                            <option value="{{ u.id }}" {% if task.assigned_to and task.assigned_to.id == u.id %}selected{% endif %}>{{ u.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -39,6 +39,14 @@
                     <input type="datetime-local" name="due_date" class="form-control"
                            value="{{ task.due_date|date:'Y-m-d\\TH:i' }}"
                            {% if role == 'viewer' %}disabled{% endif %}>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted translate-text">ТИП КАРТОЧКИ</label>
+                    <select name="card_type" class="form-select" {% if role == 'viewer' %}disabled{% endif %}>
+                        <option value="task" {% if task.card_type == 'task' %}selected{% endif %}>Задача</option>
+                        <option value="poll" {% if task.card_type == 'poll' %}selected{% endif %}>Голосование</option>
+                    </select>
                 </div>
 
                 <div class="col-md-6">
@@ -54,6 +62,37 @@
                            {% if role == 'viewer' %}disabled{% endif %}>
                 </div>
             </div>
+
+            {% if task.card_type == 'poll' and poll %}
+            <div class="mb-4 p-3 bg-light rounded poll-block-no-nested-form">
+                <label class="form-label small fw-bold text-muted translate-text">ВАРИАНТЫ ОПРОСА</label>
+                {% if role != 'viewer' %}
+                <div class="d-flex gap-2 mb-3" data-poll-add-url="{% url 'add_poll_option' task.id %}" data-poll-add-csrf="{{ csrf_token }}">
+                    <input type="text" class="form-control form-control-sm poll-new-option-input" placeholder="Новый вариант..." data-required>
+                    <button type="button" class="btn btn-primary btn-sm translate-text poll-add-option-btn">Добавить</button>
+                </div>
+                {% endif %}
+                <div class="poll-options-list">
+                    {% for item in poll_options_with_pct %}
+                    <div class="poll-option-row d-flex align-items-center gap-2 mb-2 py-2 px-2 rounded border border-light"
+                         data-vote-url="{% url 'vote_poll' task.id %}" data-remove-url="{% url 'remove_poll_option' item.option.id %}" data-option-id="{{ item.option.id }}" data-csrf="{{ csrf_token }}"
+                         role="button" tabindex="0">
+                        <input type="radio" name="poll_vote_{{ task.id }}" value="{{ item.option.id }}" class="poll-vote-radio flex-shrink-0"
+                               id="poll_opt_{{ task.id }}_{{ item.option.id }}" {% if user_voted_option_id == item.option.id %}checked{% endif %}>
+                        <label for="poll_opt_{{ task.id }}_{{ item.option.id }}" class="flex-grow-1 mb-0 small d-flex align-items-center gap-2 cursor-pointer">
+                            <span>{{ item.option.text }}</span>
+                            <span class="text-muted">({{ item.percent }}%)</span>
+                        </label>
+                        {% if role != 'viewer' %}
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 poll-remove-option-btn flex-shrink-0">✕</button>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="small text-muted mb-0 translate-text">Добавьте варианты ответа выше.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <div class="mt-4 mb-4">
                 <label class="form-label small fw-bold text-muted translate-text">ОПИСАНИЕ</label>
@@ -144,14 +183,14 @@
             {% if role != 'viewer' %}
             <div class="d-flex w-100 justify-content-between">
                 <div class="d-flex gap-2">
-                    <button type="submit" name="action" value="delete" class="btn btn-outline-danger btn-sm px-3" onclick="return confirm('Вы уверены?')">
+                    <button type="submit" form="mainTaskForm" name="action" value="delete" class="btn btn-outline-danger btn-sm px-3" onclick="return confirm('Вы уверены?')">
                         <span class="translate-text">Удалить</span>
                     </button>
-                    <button type="submit" name="action" value="archive" class="btn btn-outline-warning btn-sm px-3">
+                    <button type="submit" form="mainTaskForm" name="action" value="archive" class="btn btn-outline-warning btn-sm px-3">
                         <span class="translate-text">Архив</span>
                     </button>
                 </div>
-                <button type="submit" name="action" value="save" class="btn btn-primary btn-sm px-4 shadow-sm fw-bold">
+                <button type="submit" form="mainTaskForm" name="action" value="save" class="btn btn-primary btn-sm px-4 shadow-sm fw-bold">
                     <span class="translate-text">Сохранить всё</span>
                 </button>
             </div>

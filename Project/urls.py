@@ -3,8 +3,8 @@ from Project.views.profile import profile_view
 from Project.views.registerviews import register_view, login_view, logout_view, edit_comment, delete_comment
 from Project.views.views import index, board_detail, create_board, delete_board, update_board, add_comment, \
     get_task_details, delete_column, create_column, update_column, invite_user, add_task, remove_member, \
-    update_member_role, update_task, \
-    delete_task, toggle_task, archive_task, update_task_column
+    update_member_role, update_task, delete_task, toggle_task, archive_task, update_task_column, \
+    add_poll_option, remove_poll_option, vote_poll
 
 urlpatterns = [
 
@@ -32,6 +32,9 @@ urlpatterns = [
     path('task/delete/<int:task_id>/', delete_task, name='delete_task'),
     path('task/<int:pk>/toggle/', toggle_task, name='toggle_task'),
     path('task/<int:pk>/archive/', archive_task, name='archive_task'),
+    path('task/<int:task_id>/poll/option/add/', add_poll_option, name='add_poll_option'),
+    path('task/poll/option/<int:option_id>/remove/', remove_poll_option, name='remove_poll_option'),
+    path('task/<int:task_id>/poll/vote/', vote_poll, name='vote_poll'),
     path('register/', register_view, name='register'),
     path('', login_view, name='login'),
     path('logout/', logout_view, name='logout'),

@@ -131,4 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (label && savedLang) {
         label.innerText = savedLang === 'zh-CN' ? 'CN' : savedLang.toUpperCase();
     }
+
+    // Авто-скрытие уведомлений через 5 сек, чтобы не зависали на досках
+    document.querySelectorAll('.messages-alert').forEach(function(alertEl) {
+        setTimeout(function() {
+            const alert = bootstrap.Alert.getOrCreateInstance(alertEl);
+            if (alertEl.parentNode) alert.close();
+        }, 5000);
+    });
 });

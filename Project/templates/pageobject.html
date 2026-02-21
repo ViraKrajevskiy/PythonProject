@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load poll_extras %}
 
 {% block title %}{{ board.title }} | Online Trello{% endblock %}
 
@@ -44,7 +45,7 @@
                 <span class="opacity-75 translate-text">Автор:</span>
                 <strong class="translate-text d-block">{{ board.owner.username }}</strong>
             </div>
-            {% if board.owner == user %}
+            {% if role == 'owner' or role == 'admin' %}
             <button class="btn btn-sm btn-warning fw-bold shadow-none rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#manageMembersModal">
                 <span class="translate-text">👥 Участники</span> ({{ board.members.count }})
             </button>
@@ -93,7 +94,7 @@
                     {% if not task.is_archived %}
                     <div class="card task-item" data-task-id="{{ task.id }}"
                          style="border-left: 4px solid {{ task.label_color|default:'#0052cc' }} !important;"
-                         onclick="if(!event.target.classList.contains('task-checkbox')){ openTaskModal('{{ task.id }}'); }">
+                         onclick="if(event.target.closest('.poll-on-card')) return; if(event.target.classList.contains('task-checkbox')) return; openTaskModal('{{ task.id }}');">
 
                         <div class="d-flex align-items-start gap-2">
                             {% if role != 'viewer' %}
@@ -106,9 +107,24 @@
                                 {{ task.text }}
                             </span>
                         </div>
-
+                        {% with stats=poll_stats|get:task.id %}
+                        {% if task.card_type == 'poll' and stats %}
+                        <div class="mt-1 poll-on-card poll-on-card-column" data-task-id="{{ task.id }}" data-vote-url="{% url 'vote_poll' task.id %}" data-csrf="{{ csrf_token }}">
+                            {% for s in stats %}
+                            <div class="poll-card-option-row d-flex align-items-center gap-1 small">
+                                <button type="button" class="btn btn-sm py-0 px-2 flex-grow-1 text-start poll-vote-btn-card {% if user_poll_votes|get:task.id == s.id %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-option-id="{{ s.id }}" title="Голос: {{ s.text }}">
+                                    {{ s.text }}
+                                </button>
+                                <span class="text-muted flex-shrink-0">({{ s.percent }}%)</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
                         <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div class="d-flex flex-wrap gap-1">
+                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                {% if task.card_type == 'poll' %}<span class="badge bg-info text-white">Голосование</span>{% endif %}
+                                {% if task.description %}<span class="badge bg-secondary text-white" title="Есть описание">📄</span>{% endif %}
                                 {% if task.task_role %}<span class="task-role-badge">{{ task.task_role }}</span>{% endif %}
                                 {% if task.due_date %}<div class="task-date-badge">📅 {{ task.due_date|date:"d M" }}</div>{% endif %}
                             </div>
@@ -132,7 +148,14 @@
                     <form action="{% url 'add_task' %}" method="POST" class="m-0">
                         {% csrf_token %}
                         <input type="hidden" name="column_id" value="{{ column.id }}">
-                        <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-dark bg-opacity-10 translate-text" placeholder="+ Добавить задачу" required>
+                        <div class="d-flex gap-1 mb-1">
+                            <select name="card_type" class="form-select form-select-sm border-0 shadow-none bg-dark bg-opacity-10" style="max-width: 120px;" title="Тип карточки">
+                                <option value="task">Задача</option>
+                                <option value="poll">Голосование</option>
+                            </select>
+                            <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-dark bg-opacity-10 translate-text flex-grow-1" placeholder="+ Добавить карточку" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100 translate-text">Добавить</button>
                     </form>
                 </div>
                 {% endif %}
@@ -156,7 +179,7 @@
     </main>
 </div>
 
-{% if board.owner == user %}
+{% if role == 'owner' or role == 'admin' %}
 <div class="modal fade" id="manageMembersModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">

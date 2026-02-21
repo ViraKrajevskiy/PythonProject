@@ -202,4 +202,80 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // 5.6. Опрос: добавление варианта, голос, удаление (без вложенных форм)
+    document.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('.poll-add-option-btn');
+        if (addBtn) {
+            const block = addBtn.closest('[data-poll-add-url]');
+            const input = block?.querySelector('.poll-new-option-input');
+            const text = input?.value?.trim();
+            if (!text) return;
+            const url = block.getAttribute('data-poll-add-url');
+            const csrf = block.getAttribute('data-poll-add-csrf');
+            const fd = new FormData();
+            fd.append('csrfmiddlewaretoken', csrf);
+            fd.append('text', text);
+            fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
+                .then(r => { if (r.redirected) location.assign(r.url); });
+            return;
+        }
+        const removeBtn = e.target.closest('.poll-remove-option-btn');
+        if (removeBtn && confirm('Удалить вариант?')) {
+            const row = removeBtn.closest('[data-remove-url]');
+            const url = row.getAttribute('data-remove-url');
+            const csrf = row.getAttribute('data-csrf');
+            const fd = new FormData();
+            fd.append('csrfmiddlewaretoken', csrf);
+            fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
+                .then(r => { if (r.redirected) location.assign(r.url); });
+        }
+    });
+    function submitPollVote(row) {
+        const url = row.getAttribute('data-vote-url');
+        const optionId = row.getAttribute('data-option-id');
+        const csrf = row.getAttribute('data-csrf');
+        if (!url || !optionId || !csrf) return;
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('option_id', optionId);
+        fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
+            .then(r => { if (r.redirected) location.assign(r.url); });
+    }
+
+    document.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('poll-vote-radio') || !e.target.checked) return;
+        const row = e.target.closest('[data-vote-url]');
+        if (row) submitPollVote(row);
+    });
+
+    document.addEventListener('click', (e) => {
+        const optionRow = e.target.closest('.poll-option-row');
+        if (optionRow && !e.target.closest('.poll-remove-option-btn')) {
+            e.preventDefault();
+            const radio = optionRow.querySelector('.poll-vote-radio');
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                submitPollVote(optionRow);
+            }
+        }
+    });
+
+    // 5.7. Голосование с карточки (на доске, без открытия модалки)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.poll-vote-btn-card');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const block = btn.closest('.poll-on-card');
+        const url = block.getAttribute('data-vote-url');
+        const optionId = btn.getAttribute('data-option-id');
+        const csrf = block.getAttribute('data-csrf');
+        if (!url || !optionId || !csrf) return;
+        const fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        fd.append('option_id', optionId);
+        fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
+            .then(r => { if (r.redirected) location.assign(r.url); });
+    });
 });
