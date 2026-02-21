@@ -135,8 +135,38 @@ function saveTaskMovement(taskId, columnId) {
 
 // 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof Sortable === 'undefined') return;
 
-    // 5.1. Подключение Drag-and-Drop (SortableJS)
+    // 5.0. Перетаскивание колонок (только за шапку колонки)
+    const boardCanvas = document.getElementById('boardCanvas');
+    if (boardCanvas) {
+        const boardId = boardCanvas.getAttribute('data-board-id');
+        new Sortable(boardCanvas, {
+            draggable: '.column-wrapper',
+            handle: '.column-card .card-header',
+            group: 'columns',
+            animation: 150,
+            ghostClass: 'column-ghost',
+            chosenClass: 'column-chosen',
+            onEnd: function () {
+                if (!boardId) return;
+                const wrappers = boardCanvas.querySelectorAll('.column-wrapper');
+                const columnIds = Array.from(wrappers).map(w => w.getAttribute('data-column-id')).filter(Boolean);
+                if (columnIds.length === 0) return;
+                const formData = new FormData();
+                columnIds.forEach(id => formData.append('column_ids[]', id));
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken.value);
+                fetch(`/board/${boardId}/columns/reorder/`, {
+                    method: 'POST',
+                    headers: csrfToken ? { 'X-CSRFToken': csrfToken.value } : {},
+                    body: formData
+                }).then(r => r.json()).catch(() => {});
+            }
+        });
+    }
+
+    // 5.1. Подключение Drag-and-Drop карточек (SortableJS)
     const taskContainers = document.querySelectorAll('.task-container');
 
     taskContainers.forEach(container => {

@@ -53,9 +53,9 @@
         </div>
     </nav>
 
-    <main class="board-canvas">
+    <main class="board-canvas" id="boardCanvas" data-board-id="{{ board.id }}">
         {% for column in columns %}
-        <div class="column-wrapper">
+        <div class="column-wrapper" data-column-id="{{ column.id }}">
             <div class="card column-card border-0">
                 <div class="card-header d-flex justify-content-between align-items-start bg-transparent border-0 pt-3">
                     {% if role != 'viewer' %}

@@ -126,6 +126,25 @@
     transform: rotate(2deg);
 }
 
+/* Шапка колонки — ручка для перетаскивания столбца */
+.board-canvas .column-card .card-header {
+    cursor: grab;
+}
+.board-canvas .column-card .card-header:active {
+    cursor: grabbing;
+}
+
+/* Перетаскивание колонок */
+.column-ghost {
+    opacity: 0.4;
+    background: rgba(0, 0, 0, 0.06) !important;
+    border: 2px dashed #999 !important;
+}
+.column-chosen {
+    opacity: 0.95;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
 /* =========================================
    4. АВАТАРКИ И ИСПОЛНИТЕЛИ
    ========================================= */

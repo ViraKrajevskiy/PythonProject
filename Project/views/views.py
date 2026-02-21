@@ -316,6 +316,28 @@ def update_column(request, column_id):
     return redirect('board_detail', board_id=column.board.id)
 
 
+@login_required
+def reorder_columns(request, board_id):
+    """Сохранение нового порядка колонок после перетаскивания."""
+    board = get_object_or_404(Board, id=board_id)
+    role = get_user_role(request.user, board)
+    if role == 'viewer' or role is None:
+        return JsonResponse({'status': 'error', 'message': 'Нет прав'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error'}, status=400)
+    column_ids = request.POST.getlist('column_ids[]') or request.POST.getlist('column_ids')
+    if not column_ids:
+        return JsonResponse({'status': 'success'})
+    ids = [int(x) for x in column_ids if str(x).isdigit()]
+    columns = list(board.columns.filter(id__in=ids))
+    by_id = {c.id: c for c in columns}
+    for order, cid in enumerate(ids):
+        if cid in by_id:
+            by_id[cid].order = order
+            by_id[cid].save()
+    return JsonResponse({'status': 'success'})
+
+
 # --- ЛОГИКА ЗАДАЧ ---
 
 def add_task(request):

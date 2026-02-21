@@ -2,7 +2,7 @@ from django.urls import path
 from Project.views.profile import profile_view
 from Project.views.registerviews import register_view, login_view, logout_view, edit_comment, delete_comment
 from Project.views.views import index, board_detail, create_board, delete_board, update_board, add_comment, \
-    get_task_details, delete_column, create_column, update_column, invite_user, add_task, remove_member, \
+    get_task_details, delete_column, create_column, update_column, reorder_columns, invite_user, add_task, remove_member, \
     update_member_role, update_task, delete_task, toggle_task, archive_task, update_task_column, \
     add_poll_option, remove_poll_option, vote_poll
 
@@ -25,6 +25,7 @@ urlpatterns = [
     path('column/delete/<int:column_id>/', delete_column, name='delete_column'),
     path('board/<int:board_id>/column/create/', create_column, name='create_column'),
     path('column/update/<int:column_id>/', update_column, name='update_column'),
+    path('board/<int:board_id>/columns/reorder/', reorder_columns, name='reorder_columns'),
     path('board/<int:board_id>/invite/', invite_user, name='invite_user'),
     path('board/<int:board_id>/member/remove/<int:member_id>/', remove_member, name='remove_member'),
     path('task/add/', add_task, name='add_task'),
