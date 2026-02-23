@@ -2,7 +2,7 @@ from django.urls import path
 from Project.views.profile import profile_view
 from Project.views.registerviews import register_view, login_view, logout_view, edit_comment, delete_comment
 from Project.views.views import index, board_detail, create_board, delete_board, update_board, add_comment, \
-    get_task_details, serve_task_file, delete_column, create_column, update_column, reorder_columns, invite_user, add_task, remove_member, \
+    get_task_details, serve_task_file, delete_task_file, delete_column, create_column, update_column, reorder_columns, invite_user, add_task, remove_member, \
     update_member_role, update_task, delete_task, toggle_task, archive_task, update_task_column, \
     add_poll_option, remove_poll_option, vote_poll
 
@@ -21,6 +21,7 @@ urlpatterns = [
     path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
     path('task/<int:task_id>/get_details/', get_task_details, name='get_task_details'),
     path('task/file/<int:file_id>/', serve_task_file, name='serve_task_file'),
+    path('task/file/<int:file_id>/delete/', delete_task_file, name='delete_task_file'),
 
     path('board/<int:board_id>/member/<int:member_id>/update_role/', update_member_role, name='update_member_role'),
     path('column/delete/<int:column_id>/', delete_column, name='delete_column'),

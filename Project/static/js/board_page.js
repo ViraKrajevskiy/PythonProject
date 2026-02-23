@@ -75,8 +75,8 @@ function initTaskFilePreview(container) {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
                 img.alt = file.name;
-                img.style.maxWidth = '80px';
-                img.style.maxHeight = '60px';
+                img.style.maxWidth = '180px';
+                img.style.maxHeight = '140px';
                 img.style.objectFit = 'cover';
                 img.className = 'rounded';
                 wrap.appendChild(img);
@@ -170,6 +170,46 @@ function saveTaskMovement(taskId, columnId) {
 
 // 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 document.addEventListener('DOMContentLoaded', () => {
+    const isBoardPage = window.location.pathname.indexOf('/board/') === 0;
+
+    // Сохранение позиции прокрутки перед отправкой любой формы на доске
+    document.addEventListener('submit', function (e) {
+        if (isBoardPage) {
+            sessionStorage.setItem('boardScrollY', String(window.scrollY));
+            sessionStorage.setItem('boardScrollX', String(window.scrollX));
+            const canvas = document.getElementById('boardCanvas');
+            if (canvas) {
+                sessionStorage.setItem('boardCanvasScrollLeft', String(canvas.scrollLeft));
+            }
+        }
+    }, true);
+
+    // Восстановление позиции прокрутки после добавления карточки/колонки и т.д.
+    if (isBoardPage) {
+        const savedY = sessionStorage.getItem('boardScrollY');
+        const savedX = sessionStorage.getItem('boardScrollX');
+        const savedCanvasLeft = sessionStorage.getItem('boardCanvasScrollLeft');
+        if (savedY !== null || savedX !== null || savedCanvasLeft !== null) {
+            sessionStorage.removeItem('boardScrollY');
+            sessionStorage.removeItem('boardScrollX');
+            sessionStorage.removeItem('boardCanvasScrollLeft');
+            const y = parseInt(savedY || '0', 10);
+            const x = parseInt(savedX || '0', 10);
+            const canvasLeft = parseInt(savedCanvasLeft || '0', 10);
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            const restore = () => {
+                window.scrollTo(x, y);
+                const canvas = document.getElementById('boardCanvas');
+                if (canvas) canvas.scrollLeft = canvasLeft;
+            };
+            restore();
+            requestAnimationFrame(restore);
+            setTimeout(restore, 0);
+            setTimeout(restore, 100);
+            setTimeout(restore, 300);
+        }
+    }
+
     if (typeof Sortable === 'undefined') return;
 
     // 5.0. Перетаскивание колонок (только за шапку колонки)
@@ -342,5 +382,30 @@ document.addEventListener('DOMContentLoaded', () => {
         fd.append('option_id', optionId);
         fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
             .then(r => { if (r.redirected) location.assign(r.url); });
+    });
+
+    // 5.8. Удаление вложения (фото/файла) в модалке задачи
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.task-file-delete');
+        if (!btn) return;
+        e.preventDefault();
+        const fileId = btn.getAttribute('data-file-id');
+        if (!fileId || !confirm('Удалить этот файл?')) return;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        const fd = new FormData();
+        if (csrfToken) fd.append('csrfmiddlewaretoken', csrfToken.value);
+        fetch(`/task/file/${fileId}/delete/`, {
+            method: 'POST',
+            headers: csrfToken ? { 'X-CSRFToken': csrfToken.value } : {},
+            body: fd
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const row = document.querySelector(`.task-file-row[data-file-id="${fileId}"]`);
+                    if (row) row.remove();
+                }
+            })
+            .catch(() => {});
     });
 });

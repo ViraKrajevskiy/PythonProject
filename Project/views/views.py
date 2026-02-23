@@ -117,6 +117,26 @@ def serve_task_file(request, file_id):
 
 
 @login_required
+def delete_task_file(request, file_id):
+    """Удаление вложения задачи (доступно не viewer)."""
+    tf = get_object_or_404(TaskFile, id=file_id)
+    board = tf.task.column.board
+    role = get_user_role(request.user, board)
+    if role == 'viewer' or role is None:
+        return JsonResponse({'status': 'error', 'message': 'Нет прав'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error'}, status=400)
+    task_id = tf.task_id
+    if tf.file:
+        try:
+            tf.file.delete(save=False)
+        except Exception:
+            pass
+    tf.delete()
+    return JsonResponse({'status': 'success', 'task_id': task_id})
+
+
+@login_required
 def update_board(request, board_id):
     board = get_object_or_404(Board, id=board_id)
     role = get_user_role(request.user, board)
