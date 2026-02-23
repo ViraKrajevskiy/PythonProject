@@ -82,6 +82,10 @@ class TaskFile(models.Model):
     def __str__(self):
         return f"File for {self.task.text}"
 
+    def is_image(self):
+        name = (self.original_name or self.file.name or '').lower()
+        return any(name.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp'))
+
     def save(self, *args, **kwargs):
         if not self.original_name:
             self.original_name = self.file.name

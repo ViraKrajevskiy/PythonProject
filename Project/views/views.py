@@ -7,7 +7,7 @@ from django.urls import reverse
 from Project.Models_main.new import Board, Column, Task, BoardMember, Comment, TaskFile, Poll, PollOption
 from django.contrib import messages
 from Project.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 
 
 @login_required
@@ -90,6 +90,30 @@ def get_task_details(request, task_id):
         'poll_options_with_pct': poll_options_with_pct,
         'user_voted_option_id': user_voted_option_id,
     })
+
+
+@login_required
+def serve_task_file(request, file_id):
+    """Раздача вложения по ID — избегает проблем с кодированием URL (404 на кириллице)."""
+    tf = get_object_or_404(TaskFile, id=file_id)
+    board = tf.task.column.board
+    if get_user_role(request.user, board) is None:
+        from django.http import Http404
+        raise Http404()
+    if not tf.file:
+        from django.http import Http404
+        raise Http404()
+    try:
+        f = tf.file.open('rb')
+    except Exception:
+        from django.http import Http404
+        raise Http404()
+    name = (tf.original_name or tf.file.name) or 'file'
+    content_type = None
+    if name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg')):
+        import mimetypes
+        content_type = mimetypes.guess_type(name)[0]
+    return FileResponse(f, content_type=content_type, as_attachment=False, filename=name)
 
 
 @login_required

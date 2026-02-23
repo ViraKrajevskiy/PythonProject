@@ -34,6 +34,9 @@ function openTaskModal(taskId) {
         .then(html => {
             contentDiv.innerHTML = html;
 
+            // Превью выбранных файлов перед отправкой
+            initTaskFilePreview(contentDiv);
+
             // Автоматический скролл комментариев вниз
             const scrollList = contentDiv.querySelector('.comments-list-scroll');
             if (scrollList) {
@@ -54,6 +57,38 @@ function openTaskModal(taskId) {
                 </div>
             `;
         });
+}
+
+// Превью выбранных файлов в форме задачи
+function initTaskFilePreview(container) {
+    if (!container) return;
+    const input = container.querySelector('#taskFileInput');
+    const previewArea = container.querySelector('#filePreviewArea');
+    if (!input || !previewArea) return;
+    input.addEventListener('change', function () {
+        previewArea.innerHTML = '';
+        const files = Array.from(this.files || []);
+        files.forEach(function (file) {
+            const wrap = document.createElement('div');
+            wrap.className = 'border rounded p-1 bg-white';
+            if (file.type.indexOf('image/') === 0) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.alt = file.name;
+                img.style.maxWidth = '80px';
+                img.style.maxHeight = '60px';
+                img.style.objectFit = 'cover';
+                img.className = 'rounded';
+                wrap.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'small text-muted';
+                span.textContent = '📎 ' + file.name;
+                wrap.appendChild(span);
+            }
+            previewArea.appendChild(wrap);
+        });
+    });
 }
 
 // 2. УПРАВЛЕНИЕ РЕДАКТИРОВАНИЕМ КОММЕНТАРИЕВ

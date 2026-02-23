@@ -103,14 +103,20 @@
             <div class="mb-4">
                 <label class="form-label small fw-bold text-muted translate-text">ВЛОЖЕНИЯ</label>
                 {% if role != 'viewer' %}
-                <input type="file" name="attachment" class="form-control form-control-sm mb-2">
+                <input type="file" name="task_files" class="form-control form-control-sm mb-2" id="taskFileInput" accept="image/*,.pdf,.doc,.docx" multiple>
+                <div id="filePreviewArea" class="d-flex flex-wrap gap-2 mb-2"></div>
                 {% endif %}
 
                 <div class="file-list">
                     {% for file in task.files.all %}
-                    <div class="p-2 mb-1 bg-light rounded border d-flex justify-content-between align-items-center">
-                        <span class="small text-truncate" title="{{ file.original_name }}">📎 {{ file.original_name }}</span>
-                        <a href="{{ file.file.url }}" class="btn btn-sm btn-link py-0 translate-text" target="_blank">Открыть</a>
+                    <div class="p-2 mb-1 bg-light rounded border d-flex align-items-center gap-2 flex-wrap">
+                        {% if file.is_image %}
+                        <a href="{% url 'serve_task_file' file.id %}" target="_blank" class="d-block flex-shrink-0">
+                            <img src="{% url 'serve_task_file' file.id %}" alt="{{ file.original_name }}" class="task-file-thumb rounded" style="max-width:80px;max-height:60px;object-fit:cover;">
+                        </a>
+                        {% endif %}
+                        <span class="small text-truncate flex-grow-1" title="{{ file.original_name }}">📎 {{ file.original_name }}</span>
+                        <a href="{% url 'serve_task_file' file.id %}" class="btn btn-sm btn-link py-0 translate-text" target="_blank">Открыть</a>
                     </div>
                     {% empty %}
                     <small class="text-muted translate-text">Файлов пока нет</small>
