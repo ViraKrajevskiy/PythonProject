@@ -94,12 +94,14 @@ def get_task_details(request, task_id):
 
 @login_required
 def serve_task_file(request, file_id):
-    """Раздача вложения по ID — избегает проблем с кодированием URL (404 на кириллице)."""
+    """Раздача вложения по ID или редирект на Google Drive."""
     tf = get_object_or_404(TaskFile, id=file_id)
     board = tf.task.column.board
     if get_user_role(request.user, board) is None:
         from django.http import Http404
         raise Http404()
+    if tf.drive_file_id and not tf.file:
+        return redirect(f'https://drive.google.com/file/d/{tf.drive_file_id}/view')
     if not tf.file:
         from django.http import Http404
         raise Http404()
@@ -456,16 +458,32 @@ def update_task(request, task_id):
             task.task_role = task_role_input or None
 
         # 4. Логика вложений (файлов)
-        # Если в форме поле называется 'attachment' (как в моем прошлом HTML)
         if 'attachment' in request.FILES:
             file = request.FILES['attachment']
             TaskFile.objects.create(task=task, file=file, original_name=file.name)
 
-        # Если ты используешь множественную загрузку 'task_files'
         if 'task_files' in request.FILES:
             files = request.FILES.getlist('task_files')
             for f in files:
                 TaskFile.objects.create(task=task, file=f, original_name=f.name)
+
+        # Ссылки на файлы в Google Drive (вставить ссылку — показываем превью, по клику открывается в Drive)
+        drive_links = request.POST.get('drive_links', '').strip()
+        if drive_links:
+            import re
+            for raw in drive_links.splitlines():
+                raw = raw.strip()
+                if not raw:
+                    continue
+                # Форматы: .../file/d/FILE_ID/view или ...?id=FILE_ID или .../open?id=FILE_ID
+                m = re.search(r'/file/d/([a-zA-Z0-9_-]{20,})', raw) or re.search(r'[?&]id=([a-zA-Z0-9_-]{20,})', raw)
+                if m:
+                    file_id = m.group(1)
+                    TaskFile.objects.create(
+                        task=task,
+                        drive_file_id=file_id,
+                        original_name='Файл из Google Drive'
+                    )
 
         task.save()
         messages.success(request, "Изменения сохранены")

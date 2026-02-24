@@ -13,10 +13,24 @@ def profile_view(request):
 
         # 1. Обработка обновления личных данных и фото
         if 'update_profile' in request.POST:
-            # ВАЖНО: передаем request.FILES, иначе фото не сохранится
             user_form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
             if user_form.is_valid():
                 user_form.save()
+                # Ссылка на аватар в Google Drive
+                link = (request.POST.get('avatar_drive_link') or '').strip()
+                if link:
+                    import re
+                    m = re.search(r'/file/d/([a-zA-Z0-9_-]{20,})', link) or re.search(r'[?&]id=([a-zA-Z0-9_-]{20,})', link)
+                    if m:
+                        request.user.avatar_drive_id = m.group(1)
+                        request.user.save(update_fields=['avatar_drive_id'])
+                    else:
+                        request.user.avatar_drive_id = None
+                        request.user.save(update_fields=['avatar_drive_id'])
+                else:
+                    if request.user.avatar_drive_id:
+                        request.user.avatar_drive_id = None
+                        request.user.save(update_fields=['avatar_drive_id'])
                 messages.success(request, 'Личные данные и аватар успешно обновлены!')
                 return redirect('profile')
             else:

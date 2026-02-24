@@ -46,7 +46,7 @@ pip-wheel-metadata/
 *.iml
 .vscode/
 
-# OS files
-.DS_Store
+# Google Drive service account key (секретный ключ)
+Config/djangocloud*.json
 Thumbs.db
 Desktop.ini

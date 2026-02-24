@@ -16,6 +16,16 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, blank=False)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='other')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    # Ссылка на фото в Google Drive (если задана — показываем её вместо загрузки)
+    avatar_drive_id = models.CharField(max_length=128, blank=True, null=True)
+
+    def get_avatar_url(self):
+        """URL аватара: из Google Drive или загруженный файл."""
+        if self.avatar_drive_id:
+            return f'https://drive.google.com/thumbnail?id={self.avatar_drive_id}&sz=w200'
+        if self.avatar:
+            return self.avatar.url
+        return None
 
     class Meta:
         constraints = [

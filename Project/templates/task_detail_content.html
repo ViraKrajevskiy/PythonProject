@@ -105,18 +105,20 @@
                 {% if role != 'viewer' %}
                 <input type="file" name="task_files" class="form-control form-control-sm mb-2" id="taskFileInput" accept="image/*,.pdf,.doc,.docx" multiple>
                 <div id="filePreviewArea" class="d-flex flex-wrap gap-2 mb-2"></div>
+                <label class="form-label small text-muted translate-text mt-2">Или вставьте ссылки на файлы в Google Drive (несколько — каждую с новой строки)</label>
+                <textarea name="drive_links" class="form-control form-control-sm" rows="5" placeholder="https://drive.google.com/file/d/.../view&#10;https://drive.google.com/open?id=...&#10;..." {% if role == 'viewer' %}disabled{% endif %}></textarea>
                 {% endif %}
 
                 <div class="file-list">
                     {% for file in task.files.all %}
                     <div class="task-file-row p-2 mb-1 bg-light rounded border d-flex align-items-center gap-2 flex-wrap" data-file-id="{{ file.id }}">
                         {% if file.is_image %}
-                        <a href="{% url 'serve_task_file' file.id %}" target="_blank" class="d-block flex-shrink-0">
-                            <img src="{% url 'serve_task_file' file.id %}" alt="{{ file.original_name }}" class="task-file-thumb rounded" style="max-width:180px;max-height:140px;object-fit:cover;">
+                        <a href="{{ file.get_view_url }}" target="_blank" rel="noopener" class="d-block flex-shrink-0">
+                            <img src="{{ file.get_thumbnail_url }}" alt="{{ file.original_name }}" class="task-file-thumb rounded" style="max-width:320px;max-height:240px;object-fit:cover;" loading="lazy">
                         </a>
                         {% endif %}
                         <span class="small text-truncate flex-grow-1" title="{{ file.original_name }}">📎 {{ file.original_name }}</span>
-                        <a href="{% url 'serve_task_file' file.id %}" class="btn btn-sm btn-link py-0 translate-text" target="_blank">Открыть</a>
+                        <a href="{{ file.get_view_url }}" class="btn btn-sm btn-link py-0 translate-text" target="_blank" rel="noopener">Открыть</a>
                         {% if role != 'viewer' %}
                         <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 task-file-delete" data-file-id="{{ file.id }}" title="Удалить">🗑️</button>
                         {% endif %}
@@ -138,8 +140,8 @@
                     {% for comment in task.comments.all %}
                     <div class="comment-item d-flex gap-3 mb-3">
                         <div class="user-avatar-sm shadow-sm">
-                            {% if comment.author.avatar %}
-                                <img src="{{ comment.author.avatar.url }}" alt="AV">
+                            {% if comment.author.get_avatar_url %}
+                                <img src="{{ comment.author.get_avatar_url }}" alt="AV">
                             {% else %}
                                 {{ comment.author.username|slice:":1"|upper }}
                             {% endif %}

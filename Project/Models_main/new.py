@@ -75,20 +75,47 @@ class PollOption(models.Model):
 
 class TaskFile(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to='task_files/')
+    file = models.FileField(
+        upload_to='task_files/',
+        storage=__import__('Project.storage_backends', fromlist=['GoogleDriveStorage']).GoogleDriveStorage(),
+        blank=True,
+        default=''
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    original_name = models.CharField(max_length=255, blank=True) # Чтобы хранить красивое имя файла
+    original_name = models.CharField(max_length=255, blank=True)
+    # Ссылка на файл в Google Drive (если добавлен по ссылке, а не загрузкой)
+    drive_file_id = models.CharField(max_length=128, blank=True, null=True)
 
     def __str__(self):
         return f"File for {self.task.text}"
 
     def is_image(self):
+        if self.drive_file_id:
+            return True  # считаем превью по умолчанию для ссылок Drive
         name = (self.original_name or self.file.name or '').lower()
         return any(name.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp'))
 
+    def get_view_url(self):
+        """Ссылка для открытия файла (наш сервер или Google Drive)."""
+        if self.drive_file_id:
+            return f'https://drive.google.com/file/d/{self.drive_file_id}/view'
+        if self.file:
+            from django.urls import reverse
+            return reverse('serve_task_file', args=[self.id])
+        return '#'
+
+    def get_thumbnail_url(self):
+        """URL превью (наш сервер или Google Drive thumbnail)."""
+        if self.drive_file_id:
+            return f'https://drive.google.com/thumbnail?id={self.drive_file_id}&sz=w400'
+        if self.file:
+            from django.urls import reverse
+            return reverse('serve_task_file', args=[self.id])
+        return ''
+
     def save(self, *args, **kwargs):
         if not self.original_name:
-            self.original_name = self.file.name
+            self.original_name = self.file.name if self.file else ('Файл из Drive' if self.drive_file_id else '')
         super().save(*args, **kwargs)
 
 # 6. Комментарии

@@ -130,8 +130,8 @@
                             </div>
                             {% if task.assigned_to %}
                                 <div class="assignee-circle" title="{{ task.assigned_to.username }}">
-                                    {% if task.assigned_to.avatar %}
-                                        <img src="{{ task.assigned_to.avatar.url }}" class="rounded-circle" width="24" height="24">
+                                    {% if task.assigned_to.get_avatar_url %}
+                                        <img src="{{ task.assigned_to.get_avatar_url }}" class="rounded-circle" width="24" height="24">
                                     {% else %}
                                         <div class="user-avatar-sm" style="width:24px; height:24px; font-size:10px;">{{ task.assigned_to.username|slice:":1"|upper }}</div>
                                     {% endif %}
@@ -212,8 +212,8 @@
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-light">
                         <div class="d-flex align-items-center gap-3">
                             <div class="user-avatar-sm">
-                                {% if member.user.avatar %}
-                                    <img src="{{ member.user.avatar.url }}" width="32" height="32" class="rounded-circle">
+                                {% if member.user.get_avatar_url %}
+                                    <img src="{{ member.user.get_avatar_url }}" width="32" height="32" class="rounded-circle">
                                 {% else %}
                                     {{ member.user.username|slice:":1"|upper }}
                                 {% endif %}
