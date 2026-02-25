@@ -148,10 +148,10 @@
                     <form action="{% url 'add_task' %}" method="POST" class="m-0">
                         {% csrf_token %}
                         <input type="hidden" name="column_id" value="{{ column.id }}">
-                        <div class="d-flex gap-1 mb-1">
-                            <select name="card_type" class="form-select form-select-sm border-0 shadow-none bg-dark bg-opacity-10" style="max-width: 120px;" title="Тип карточки">
-                                <option value="task">Задача</option>
-                                <option value="poll">Голосование</option>
+                        <div class="d-flex gap-1 mb-1 align-items-center">
+                            <select name="card_type" class="form-select form-select-sm border-0 shadow-none bg-dark bg-opacity-10 card-type-select" title="Тип: Задача / Голосование">
+                                <option value="task" title="Задача">📋</option>
+                                <option value="poll" title="Голосование">🗳️</option>
                             </select>
                             <input type="text" name="text" class="form-control form-control-sm border-0 shadow-none bg-dark bg-opacity-10 translate-text flex-grow-1" placeholder="+ Добавить карточку" required>
                         </div>

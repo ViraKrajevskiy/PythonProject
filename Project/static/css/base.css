@@ -16,17 +16,57 @@ html.theme-red, body.theme-red { --bg-main: linear-gradient(-45deg, #b04632, #dd
 html.theme-pink, body.theme-pink { --bg-main: linear-gradient(-45deg, #cd5a91, #e08bb3, #ff79c6, #fd79a8); --card-bg: rgba(205, 90, 145, 0.25); }
 html.theme-dark, body.theme-dark { --bg-main: linear-gradient(-45deg, #2c3e50, #000000, #34495e, #1c1c1c); --card-bg: rgba(255, 255, 255, 0.05); }
 
-/* Анимация фона */
+/* Интерактивный фон — при нажатии звёздочки появляются плавающие пятна */
 html.animated-bg body,
 body.animated-bg {
-    background-size: 400% 400% !important;
-    animation: gradientBG 15s ease infinite !important;
+    background-size: 500% 500% !important;
+    animation: gradientFlow 16s ease-in-out infinite !important;
+    position: relative;
+    overflow-x: hidden;
+}
+html.animated-bg body::before,
+body.animated-bg::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 80vmax; height: 80vmax;
+    background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    animation: blobFloat1 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+html.animated-bg body::after,
+body.animated-bg::after {
+    content: '';
+    position: fixed;
+    bottom: -20%; right: -10%;
+    width: 60vmax; height: 60vmax;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 65%);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    animation: blobFloat2 18s ease-in-out infinite reverse;
+    pointer-events: none;
+    z-index: -1;
 }
 
-@keyframes gradientBG {
+@keyframes gradientFlow {
     0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    33% { background-position: 100% 50%; }
+    66% { background-position: 100% 100%; }
     100% { background-position: 0% 50%; }
+}
+
+@keyframes blobFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+    25% { transform: translate(10%, -15%) scale(1.1) rotate(5deg); border-radius: 70% 30% 50% 50% / 30% 70% 50% 50%; }
+    50% { transform: translate(-5%, 10%) scale(0.95) rotate(-3deg); border-radius: 50% 50% 30% 70% / 50% 50% 70% 30%; }
+    75% { transform: translate(-15%, -5%) scale(1.05) rotate(8deg); border-radius: 30% 70% 70% 30% / 70% 30% 30% 70%; }
+}
+
+@keyframes blobFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    33% { transform: translate(-20%, 15%) scale(1.15); border-radius: 40% 60% 70% 30% / 50% 50% 50% 50%; }
+    66% { transform: translate(15%, -10%) scale(0.9); border-radius: 70% 30% 40% 60% / 30% 70% 60% 40%; }
 }
 
 /* =========================================
@@ -110,15 +150,50 @@ body {
     transform: scale(1.3);
 }
 
+/* Звёздочка — переключатель анимации фона */
+.anim-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    opacity: 0.85;
+}
+.anim-toggle:hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(15deg);
+}
+html.animated-bg .anim-toggle {
+    animation: starGlow 2s ease-in-out infinite;
+    opacity: 1;
+}
+.anim-toggle:active {
+    transform: scale(0.95);
+}
+@keyframes starGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 220, 100, 0.6)); }
+    50% { filter: drop-shadow(0 0 8px rgba(255, 220, 100, 0.9)); }
+}
+
 /* =========================================
-   4. ЧИСТКА GOOGLE TRANSLATE
+   4. СКРЫТИЕ ПАНЕЛИ GOOGLE TRANSLATE
    ========================================= */
+/* Скрываем панель Google (баннер «Перевести страницу») */
+.goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
-.goog-te-banner-frame { display: none !important; }
-body { top: 0 !important; }
-.goog-te-balloon-frame { display: none !important; }
-font { background-color: transparent !important; box-shadow: none !important; display: inline !important; }
+div.goog-te-banner-frame,
+.skiptranslate,
+.goog-te-balloon-frame,
+.goog-te-gadget,
+.goog-te-gadget-simple,
+.goog-te-menu-frame,
+#goog-gt-tt { display: none !important; }
 #google_translate_element { display: none !important; }
+body { top: 0 !important; }
+html.translated-ltr body, html.translated-rtl body { top: 0 !important; }
+font.goog-te-menu-frame { display: none !important; }
 
 /* =========================================
    5. КАСТОМНЫЕ СКРОЛЛБАРЫ (ЧТОБЫ БЫЛО ВИДНО)

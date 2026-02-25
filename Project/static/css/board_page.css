@@ -67,6 +67,19 @@
     flex-shrink: 0;
 }
 
+/* Компактный выбор типа карточки (иконки вместо текста) */
+.card-type-select {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    padding: 2px 4px;
+    font-size: 1rem;
+    text-align: center;
+    cursor: pointer;
+    height: auto;
+    line-height: 1.2;
+}
+
 /* Стеклянный эффект для кнопки "Добавить список" */
 .column-wrapper .card.bg-opacity-25 {
     background: rgba(255, 255, 255, 0.15) !important;

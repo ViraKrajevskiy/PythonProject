@@ -9,20 +9,28 @@ function setCookie(name, value, days) {
 }
 
 /**
- * 2. ЛОГИКА ПЕРЕВОДА (Исправлено: теперь русский тоже принудительный)
+ * 2. ЛОГИКА ПЕРЕВОДА
  */
+function clearGoogtransCookie() {
+    var expire = 'expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'googtrans=;' + expire + ';path=/';
+    document.cookie = 'googtrans=;' + expire + ';path=/;domain=' + location.hostname;
+}
+
 function changeLang(langCode) {
+    // Базовый = оригинал без перевода
+    if (langCode === '' || langCode === 'base') {
+        localStorage.setItem('userLang', 'base');
+        clearGoogtransCookie();
+        location.reload();
+        return;
+    }
+
     localStorage.setItem('userLang', langCode);
-
-    // ВАЖНО: Мы не удаляем куку для 'ru', а принудительно ставим /auto/ru.
-    // Это заставляет Google переводить смешанный текст (китайский/английский) на русский.
-    setCookie('googtrans', `/auto/${langCode}`, 1);
-
-    // Дублируем для текущего домена (иногда необходимо на хостингах)
+    var toLang = (langCode === 'zh-CN' || langCode === 'zh_CN') ? 'zh-CN' : langCode;
+    setCookie('googtrans', '/auto/' + toLang, 1);
     const domain = location.hostname;
-    document.cookie = `googtrans=/auto/${langCode};path=/;domain=${domain};SameSite=Lax`;
-
-    // Перезагружаем страницу для применения перевода
+    document.cookie = 'googtrans=/auto/' + toLang + ';path=/;domain=' + domain + ';SameSite=Lax';
     location.reload();
 }
 
@@ -128,8 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Текст на кнопке языка
     const savedLang = localStorage.getItem('userLang');
     const label = document.getElementById('current-lang-label');
-    if (label && savedLang) {
-        label.innerText = savedLang === 'zh-CN' ? 'CN' : savedLang.toUpperCase();
+    if (label) {
+        if (savedLang === 'base' || savedLang === '' || !savedLang) label.innerText = 'Баз';
+        else if (savedLang === 'zh-CN' || savedLang === 'zh_CN') label.innerText = 'CN';
+        else label.innerText = savedLang.toUpperCase().slice(0, 2);
     }
 
     // Авто-скрытие уведомлений через 5 сек, чтобы не зависали на досках

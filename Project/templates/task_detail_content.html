@@ -43,9 +43,9 @@
 
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted translate-text">ТИП КАРТОЧКИ</label>
-                    <select name="card_type" class="form-select" {% if role == 'viewer' %}disabled{% endif %}>
-                        <option value="task" {% if task.card_type == 'task' %}selected{% endif %}>Задача</option>
-                        <option value="poll" {% if task.card_type == 'poll' %}selected{% endif %}>Голосование</option>
+                    <select name="card_type" class="form-select form-select-sm card-type-select" {% if role == 'viewer' %}disabled{% endif %} title="Задача / Голосование">
+                        <option value="task" {% if task.card_type == 'task' %}selected{% endif %} title="Задача">📋</option>
+                        <option value="poll" {% if task.card_type == 'poll' %}selected{% endif %} title="Голосование">🗳️</option>
                     </select>
                 </div>
 
